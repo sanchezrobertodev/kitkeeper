@@ -1,10 +1,10 @@
-# Contributing to Skillshelf
+# Contributing to Kitkeeper
 
 Thanks for helping. Bug reports, translations, themes and code are all welcome.
 
 ## Report a bug or ask for a feature
 
-Open an [issue](https://github.com/sanchezrobertodev/skillshelf/issues/new/choose). For a bug, say which OS and Skillshelf version you use (both are in **Settings → About**) and what you expected to happen. Security problems go through [SECURITY.md](SECURITY.md) instead.
+Open an [issue](https://github.com/sanchezrobertodev/skillshelf/issues/new/choose). For a bug, say which OS and Kitkeeper version you use (both are in **Settings → About**) and what you expected to happen. Security problems go through [SECURITY.md](SECURITY.md) instead.
 
 ## Set up
 
@@ -35,7 +35,7 @@ Every piece of text the app shows lives in one JSON file per language in [`src/i
 - Keys are flat and grouped by screen: `"settings.language": "Language"`.
 - `{name}` is a value the app fills in. Keep every placeholder from the English text, and don't translate what's inside the braces.
 - Keys ending in `_one` / `_other` are plural forms, picked by the `count` value. If your language has more forms ([CLDR plural rules](https://www.unicode.org/cldr/charts/latest/supplemental/language_plural_rules.html)), add keys such as `_few` or `_many`; the app uses them when they exist.
-- Keep product and tool names in English: Skillshelf, Claude Code, GitHub, MCP, and command names like `claude plugin install`.
+- Keep product and tool names in English: Kitkeeper, Claude Code, GitHub, MCP, and command names like `claude plugin install`.
 
 To fix a translation, edit the JSON file and open a pull request.
 

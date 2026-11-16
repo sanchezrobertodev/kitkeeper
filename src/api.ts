@@ -43,7 +43,7 @@ const tauriApi = {
     listen<UsageProgress>("usage-progress", (e) => cb(e.payload)),
   readme: (itemId: string) => invoke<Readme | null>("item_readme", { itemId }),
   lastRuns: () => invoke<Record<string, LastRun>>("last_runs"),
-  /** Null unless Skillshelf runs from its git clone. */
+  /** Null unless Kitkeeper runs from its git clone. */
   cloneStatus: () => invoke<CloneStatus | null>("clone_status"),
   /** Pulls and rebuilds the clone, then the app restarts as the new build. Resolves only on failure. */
   cloneUpdate: async (onLine: (line: string) => void) => {
@@ -100,7 +100,7 @@ export const api: Api = mock
     ) as Api)
   : tauriApi;
 
-/** Skillshelf's own pages on GitHub (see `open_project_page`). */
+/** Kitkeeper's own pages on GitHub (see `open_project_page`). */
 export type ProjectPage = "repo" | "issues" | "changelog" | "license" | "translate";
 
 export function errorText(e: unknown): string {

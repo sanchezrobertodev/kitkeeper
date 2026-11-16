@@ -19,8 +19,8 @@ body:
   - type: input
     id: version
     attributes:
-      label: Skillshelf version and OS
-      description: Shown in Settings → About, for example "Skillshelf 0.2.0 · windows".
+      label: Kitkeeper version and OS
+      description: Shown in Settings → About, for example "Kitkeeper 0.2.0 · windows".
     validations:
       required: true
   - type: textarea

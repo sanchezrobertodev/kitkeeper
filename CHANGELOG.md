@@ -1,10 +1,17 @@
 # Changelog
 
-All notable changes to Skillshelf are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
+All notable changes to Kitkeeper (called Skillshelf before 0.6.0) are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
 Each version's section is also its GitHub release notes and the "What's new" text the app shows before updating.
 
 ## [Unreleased]
+
+### Changed
+
+- Skillshelf is now **Kitkeeper**, with a new icon: a module dropping into its socket. Your settings, history and start-at-login choice carry over.
+- On Windows, updating replaces Skillshelf with Kitkeeper. If you had pinned Skillshelf to the taskbar, pin Kitkeeper again. If you installed Skillshelf from the `.msi`, update in the app, because running the Kitkeeper `setup.exe` would leave Skillshelf installed next to it. After that update, if you use **Start Kitkeeper when you log in** (**Settings → General**), turn it off and on once.
+- On macOS, updating in the app keeps the file name, so Finder and the Dock still say Skillshelf. To change that, quit the app, rename Skillshelf to Kitkeeper in Applications and open it again. If you download Kitkeeper instead, delete the old Skillshelf and pin Kitkeeper to the Dock again. Either way, if you use start at login, turn it off and on once.
+- On Linux, the `.deb` and `.rpm` packages replace the Skillshelf package. If you had pinned Skillshelf to your dock or panel, pin Kitkeeper again. Updating the AppImage in the app keeps its file name. If you rename it, or download the Kitkeeper AppImage and delete the old one, turn start at login off and on once if you use it.
 
 ## [0.5.0] - 2026-11-02
 

@@ -260,7 +260,7 @@ export interface LastRun {
   finishedAt: number;
 }
 
-/** Skillshelf running from its git clone, compared with origin's default branch (mirrors selfupdate.rs). */
+/** Kitkeeper running from its git clone, compared with origin's default branch (mirrors selfupdate.rs). */
 export interface CloneStatus {
   dir: string;
   branch: string;
@@ -272,7 +272,7 @@ export interface CloneStatus {
   blocked: string | null;
 }
 
-/** A newer Skillshelf release found by the updater. */
+/** A newer Kitkeeper release found by the updater. */
 export interface AppUpdate {
   version: string;
   currentVersion: string;

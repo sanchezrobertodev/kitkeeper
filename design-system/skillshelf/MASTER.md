@@ -5,7 +5,7 @@
 
 ---
 
-**Project:** Skillshelf
+**Project:** Kitkeeper
 **Direction:** Workbench "Aurora" (chosen 2026-11-01, restyles the 2026-10-31 teal Workbench, which replaced the v0.1 "code dark + run green" dashboard)
 **Source:** ui-ux-pro-max: *Aurora UI* glow and gradient, a light *Glassmorphism* card, *Minimalism & Swiss Style* structure, Geist type. Colours adjusted so every text pair passes WCAG AA.
 **Dials:** Variance 4 (calm, a little expressive) · Motion 2 (subtle) · Density 7 (dense list, roomy chrome)

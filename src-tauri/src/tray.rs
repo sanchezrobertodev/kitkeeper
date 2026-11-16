@@ -27,7 +27,7 @@ pub struct TrayState {
     /// Estimated tokens per session from everything that's on.
     pub tokens: Option<u32>,
     pub unused: Option<u32>,
-    /// A newer Skillshelf version, or how many commits a clone is behind.
+    /// A newer Kitkeeper version, or how many commits a clone is behind.
     pub app_update: Option<String>,
     /// The `tray.` texts in the UI's language.
     pub text: HashMap<String, String>,
@@ -72,7 +72,7 @@ pub fn show_main(app: &AppHandle) {
 /// closes normally instead of hiding.
 pub fn create(app: &AppHandle) -> tauri::Result<()> {
     let mut tray = TrayIconBuilder::with_id(TRAY_ID)
-        .tooltip("Skillshelf")
+        .tooltip("Kitkeeper")
         .menu(&menu(app, &TrayState::default())?)
         .show_menu_on_left_click(false)
         .on_tray_icon_event(|tray, event| {
@@ -118,7 +118,7 @@ pub fn update(app: &AppHandle, state: &TrayState) -> tauri::Result<()> {
     };
     tray.set_menu(Some(menu(app, state)?))?;
     let tip = match state.updates.len() {
-        0 => "Skillshelf".to_string(),
+        0 => "Kitkeeper".to_string(),
         n => text.count("tray.tooltip", n, &[]),
     };
     tray.set_tooltip(Some(tip))
@@ -127,7 +127,7 @@ pub fn update(app: &AppHandle, state: &TrayState) -> tauri::Result<()> {
 fn title(text: &Text, tokens: Option<u32>) -> String {
     match tokens {
         Some(t) => text.get("tray.title", &[("tokens", &short_count(t))]),
-        None => "Skillshelf".into(),
+        None => "Kitkeeper".into(),
     }
 }
 
@@ -273,8 +273,8 @@ mod tests {
         assert_eq!(short_count(53_271), "53k");
         assert_eq!(short_count(950), "950");
         let en = HashMap::new();
-        assert_eq!(title(&Text(&en), Some(48_400)), "Skillshelf — ≈48k tokens per session");
-        assert_eq!(title(&Text(&en), None), "Skillshelf");
+        assert_eq!(title(&Text(&en), Some(48_400)), "Kitkeeper — ≈48k tokens per session");
+        assert_eq!(title(&Text(&en), None), "Kitkeeper");
         let es = HashMap::from([(
             "tray.header_other".to_string(),
             "{count} actualizaciones pendientes".to_string(),
