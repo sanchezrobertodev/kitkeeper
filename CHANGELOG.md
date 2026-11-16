@@ -6,6 +6,8 @@ Each version's section is also its GitHub release notes and the "What's new" tex
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-11-16
+
 ### Changed
 
 - Skillshelf is now **Kitkeeper**, with a new icon: a module dropping into its socket. Your settings, history and start-at-login choice carry over.
@@ -130,7 +132,8 @@ First release of Skillshelf, a desktop app for the skills and plugins you've ins
 - Filter, sort and search by type, status, source, marketplace/repo and on/off state.
 - Enable/disable plugins, uninstall items (always with a confirmation), and open an item's folder or source repo.
 
-[Unreleased]: https://github.com/sanchezrobertodev/skillshelf/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/sanchezrobertodev/skillshelf/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/sanchezrobertodev/skillshelf/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/sanchezrobertodev/skillshelf/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/sanchezrobertodev/skillshelf/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/sanchezrobertodev/skillshelf/compare/v0.2.0...v0.3.0
