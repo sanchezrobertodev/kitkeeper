@@ -43,7 +43,11 @@
     "category": "DeveloperTool",
     "windows": {
       "nsis": { "installerHooks": "./windows/hooks.nsh" },
-      "wix": { "upgradeCode": "303d0147-1c3b-583e-9da6-5ae00b9e3282" }
+      "wix": {
+        "upgradeCode": "303d0147-1c3b-583e-9da6-5ae00b9e3282",
+        "fragmentPaths": ["./windows/skillshelf-shortcuts.wxs"],
+        "componentRefs": ["RemoveSkillshelfShortcuts"]
+      }
     },
     "linux": {
       "deb": { "conflicts": ["skillshelf"], "replaces": ["skillshelf"] },
