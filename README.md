@@ -1,12 +1,12 @@
-# Skillshelf
+# Kitkeeper
 
-![Skillshelf](docs/screenshot-dark.png)
+![Kitkeeper](docs/screenshot-dark.png)
 
-A desktop app for the skills and plugins you've installed for Claude Code. It runs on Windows, macOS and Linux. You can:
+A desktop app for the skills and plugins you've installed for Claude Code. It runs on Windows, macOS and Linux. Kitkeeper used to be called Skillshelf. You can:
 
 - **See everything in one list**: marketplace plugins, plugins your claude.ai organization syncs to you, skills installed with the [`skills` CLI](https://skills.sh), hand-made skills in `~/.claude/skills`, and skills in project folders you add. Claude Code mods get a **Mod** tag.
 - **Start from the Overview**: pending updates, context cost per session and the heaviest items, unused plugins, MCP server problems, skill health issues and skills that changed upstream.
-- **Check what's out of date** at launch and once a day. Skillshelf compares each item with its upstream source (see below) and sends one notification per new update.
+- **Check what's out of date** at launch and once a day. Kitkeeper compares each item with its upstream source (see below) and sends one notification per new update.
 - **Review before you update**: commits and release notes between your version and the latest, plus risk flags when an update changes hooks, MCP servers, scripts or a skill's allowed tools (see below).
 - **Update** one item from its row, the right-click menu, the details panel or the tray, or several with **Update all**: a review sheet where you untick what to skip. A batch shows its progress and has a **Stop** button.
 - **See what each item costs**: an estimate of the tokens it adds to every session, and how often you used it in the last 30 days, counted from your local transcripts (see below).
@@ -14,9 +14,9 @@ A desktop app for the skills and plugins you've installed for Claude Code. It ru
 - **Check MCP servers**: each server's status, grouped by plugin, with the reason when it can't connect.
 - **Filter, sort and search** by type, status, source, marketplace/repo, on/off state, and Unused, Has issues, Has hooks or Mods. Sort by context cost or uses too. Each filter option shows a count.
 - **Turn plugins on and off**, **uninstall** items (always with a confirmation), and open an item's folder or source repo.
-- **Make it yours** in **Settings**: English, Spanish, Brazilian Portuguese, German, French or Japanese, light, dark or system mode, five colour themes including high contrast, how often to check, notifications, starting at login, and whether closing the window keeps Skillshelf in the tray.
+- **Make it yours** in **Settings**: English, Spanish, Brazilian Portuguese, German, French or Japanese, light, dark or system mode, five colour themes including high contrast, how often to check, notifications, starting at login, and whether closing the window keeps Kitkeeper in the tray.
 
-Closing the window keeps Skillshelf in the tray (menu bar on macOS), so scheduled checks and notifications keep running; **Settings** can make it quit instead. The tray menu lists pending updates and has **Check now**, **Update all** and **Quit**.
+Closing the window keeps Kitkeeper in the tray (menu bar on macOS), so scheduled checks and notifications keep running; **Settings** can make it quit instead. The tray menu lists pending updates and has **Check now**, **Update all** and **Quit**.
 
 ![Overview](docs/screenshot-light.png)
 
@@ -29,19 +29,19 @@ Closing the window keeps Skillshelf in the tray (menu bar on macOS), so schedule
 | `skills` CLI skill | `~/.agents/.skill-lock.json` | Compares the lockfile's folder hash with the folder's current git tree hash on GitHub (one API call per repo) | `npx skills@1 update <name> -g -y`, uninstall unlinks from Claude Code only (`-a claude-code`) |
 | Local / project skill | `SKILL.md` folders | **Untracked**, unless the skill ships a `skill-release.json` update manifest | Uninstall moves the folder to the OS trash |
 
-GitHub's anonymous API limit is 60 requests/hour, which is usually enough. If you are signed in with `gh` (or `GITHUB_TOKEN`/`GH_TOKEN` is set), Skillshelf uses that token.
+GitHub's anonymous API limit is 60 requests/hour, which is usually enough. If you are signed in with `gh` (or `GITHUB_TOKEN`/`GH_TOKEN` is set), Kitkeeper uses that token.
 
 Plugin changes apply after you restart Claude Code. The app shows a reminder when that's needed.
 
 ## What changed
 
-When you open an item with an update, the details panel lists what changed since your version, and the **Update all** review sheet shows the same list for each item. Skillshelf looks this up only when you open an item or the review sheet, never during the update check.
+When you open an item with an update, the details panel lists what changed since your version, and the **Update all** review sheet shows the same list for each item. Kitkeeper looks this up only when you open an item or the review sheet, never during the update check.
 
 | Source | Where the list comes from |
 |---|---|
 | Marketplace plugin | `git log <installed commit>..HEAD -- <plugin folder>` in the local marketplace copy. Claude Code clones marketplaces shallowly, so when the installed commit isn't there and the marketplace is on GitHub, the same list comes from the GitHub API (two requests). If the plugin folder has a `CHANGELOG.md`, the releases newer than your version are shown too |
 | Plugin pinned to a commit of its own GitHub repo | GitHub compare API, installed commit to latest |
-| `skills` CLI skill | Commits that touched the skill's folder, newest first. Skillshelf finds your version by comparing the folder's tree hash at each commit with `skillFolderHash` in the lockfile (up to 30 lookups); the newer commits are what's new |
+| `skills` CLI skill | Commits that touched the skill's folder, newest first. Kitkeeper finds your version by comparing the folder's tree hash at each commit with `skillFolderHash` in the lockfile (up to 30 lookups); the newer commits are what's new |
 | Skill with `skill-release.json` | The `changelog` or `changelogUrl` field (see below) |
 | Org-synced plugin, local or project skill | Shown as "No changelog available". There's no upstream history to read |
 
@@ -73,7 +73,7 @@ A skill that ships an update manifest can publish release notes in one of two op
 - `changelogUrl`: an `https` link to a markdown file.
 - `changelog`: the markdown inline, as a string.
 
-Use one heading per release with the version in it (`## 1.4.0`, `## [1.4.0] - 2026-10-01`, `## v1.4.0`). Skillshelf shows the releases newer than the installed version, up to the latest. A changelog without version headings is shown whole.
+Use one heading per release with the version in it (`## 1.4.0`, `## [1.4.0] - 2026-10-01`, `## v1.4.0`). Kitkeeper shows the releases newer than the installed version, up to the latest. A changelog without version headings is shown whole.
 
 ## Context cost and usage
 
@@ -85,7 +85,7 @@ Use one heading per release with the version in it (`## 1.4.0`, `## [1.4.0] - 20
 
 Every uninstall asks first. Claude Code keeps a folder for each plugin, `~/.claude/plugins/data/<plugin>`, for its settings, caches and downloads. When that folder has files, the confirmation shows its size and asks whether to delete it too (unticked by default). Skills installed with the `skills` CLI are unlinked from Claude Code only, and local skills go to the OS trash.
 
-Sometimes a marketplace declares its own install command for an update. When that happens, Skillshelf shows you the exact command and its hash and runs it only if you approve. It never passes `-y` blindly.
+Sometimes a marketplace declares its own install command for an update. When that happens, Kitkeeper shows you the exact command and its hash and runs it only if you approve. It never passes `-y` blindly.
 
 ## Install
 
@@ -93,22 +93,22 @@ Download the installer for your OS from [Releases](https://github.com/sanchezrob
 
 | OS | File |
 |---|---|
-| Windows | `Skillshelf_<version>_x64-setup.exe` (or the `.msi`) |
-| macOS (Apple silicon and Intel) | `Skillshelf_<version>_universal.dmg` |
+| Windows | `Kitkeeper_<version>_x64-setup.exe` (or the `.msi`) |
+| macOS (Apple silicon and Intel) | `Kitkeeper_<version>_universal.dmg` |
 | Linux | `.AppImage`, `.deb` or `.rpm` |
 
 The installers aren't code-signed yet, so the first launch shows a warning:
 
 - **Windows**: SmartScreen shows "Windows protected your PC". Click **More info**, then **Run anyway**.
-- **macOS**: Gatekeeper says Apple can't verify the app, or that it is damaged. After dragging Skillshelf to Applications, either click **Open Anyway** in System Settings → Privacy & Security, or run this once:
+- **macOS**: Gatekeeper says Apple can't verify the app, or that it is damaged. After dragging Kitkeeper to Applications, either click **Open Anyway** in System Settings → Privacy & Security, or run this once:
   ```bash
-  xattr -cr /Applications/Skillshelf.app
+  xattr -cr /Applications/Kitkeeper.app
   ```
-- **Linux**: make the AppImage executable (`chmod +x Skillshelf_*.AppImage`) and run it, or install the package with `sudo apt install ./Skillshelf_*.deb` or `sudo dnf install ./Skillshelf-*.rpm`.
+- **Linux**: make the AppImage executable (`chmod +x Kitkeeper_*.AppImage`) and run it, or install the package with `sudo apt install ./Kitkeeper_*.deb` or `sudo dnf install ./Kitkeeper-*.rpm`.
 
 ## Updates
 
-Skillshelf updates itself with the [Tauri updater](https://v2.tauri.app/plugin/updater/). On launch it checks the latest GitHub release (`latest.json`). If there is a newer version, a banner shows the version and what's new, and **Install & restart** downloads it, verifies its signature and restarts into the new version. **Settings → App updates** has a **Check for updates** button.
+Kitkeeper updates itself with the [Tauri updater](https://v2.tauri.app/plugin/updater/). On launch it checks the latest GitHub release (`latest.json`). If there is a newer version, a banner shows the version and what's new, and **Install & restart** downloads it, verifies its signature and restarts into the new version. **Settings → App updates** has a **Check for updates** button.
 
 - **Linux**: only the AppImage updates itself. If you installed the `.deb` or `.rpm`, download and install the new package.
 - **0.1.0** shipped without the updater, so install the next version by hand once. Later versions update themselves.

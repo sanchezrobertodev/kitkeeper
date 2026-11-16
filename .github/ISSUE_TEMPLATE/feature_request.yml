@@ -1,5 +1,5 @@
 name: Feature request
-description: Suggest something Skillshelf should do.
+description: Suggest something Kitkeeper should do.
 labels: [enhancement]
 body:
   - type: textarea
@@ -13,4 +13,4 @@ body:
     id: idea
     attributes:
       label: Your idea
-      description: How you'd like Skillshelf to help. Optional.
+      description: How you'd like Kitkeeper to help. Optional.

@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Skillshelf",
+  "productName": "Kitkeeper",
   "version": "0.5.0",
   "identifier": "dev.sanchezroberto.skillshelf",
   "build": {
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Skillshelf",
+        "title": "Kitkeeper",
         "width": 1360,
         "height": 860,
         "minWidth": 960,
@@ -40,7 +40,15 @@
     ],
     "shortDescription": "Claude Code skills & plugins manager",
     "longDescription": "Browse, filter and update the skills and plugins installed for Claude Code.",
-    "category": "DeveloperTool"
+    "category": "DeveloperTool",
+    "windows": {
+      "nsis": { "installerHooks": "./windows/hooks.nsh" },
+      "wix": { "upgradeCode": "303d0147-1c3b-583e-9da6-5ae00b9e3282" }
+    },
+    "linux": {
+      "deb": { "conflicts": ["skillshelf"], "replaces": ["skillshelf"] },
+      "rpm": { "obsoletes": ["skillshelf"] }
+    }
   },
   "plugins": {
     "updater": {

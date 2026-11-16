@@ -63,7 +63,7 @@ pub struct Changelog {
     pub retryable: bool,
     /// Hooks, MCP servers, scripts or allowed tools the update adds or changes; `None` when that couldn't be checked.
     pub risks: Option<Vec<Risk>>,
-    /// The commit the installed version matches, when Skillshelf could tell.
+    /// The commit the installed version matches, when Kitkeeper could tell.
     pub installed: Option<Entry>,
 }
 
@@ -105,7 +105,7 @@ fn remember(key: CacheKey, log: Changelog) {
 }
 
 /// True when `url` came from a changelog already fetched for this item, so the UI can only open
-/// links Skillshelf produced (commit pages, history pages, links inside release notes).
+/// links Kitkeeper produced (commit pages, history pages, links inside release notes).
 pub fn is_known_link(item_id: &str, url: &str) -> bool {
     cache().lock().unwrap().iter().any(|((id, ..), log)| {
         id == item_id
@@ -343,7 +343,7 @@ async fn raw_file(client: &reqwest::Client, repo: &str, sha: &str, path: &str) -
 pub async fn commits_since(repo: &Path, sha: &str, rel: &str, web_repo: Option<&str>) -> Result<Vec<Entry>, String> {
     if !plugins::commit_exists(repo, sha).await? {
         return Err(
-            "The installed commit isn't in the local marketplace copy, so Skillshelf can't tell which commits are new."
+            "The installed commit isn't in the local marketplace copy, so Kitkeeper can't tell which commits are new."
                 .into(),
         );
     }
@@ -443,7 +443,7 @@ async fn external_changes(src: &Map<String, Value>, git_sha: Option<&str>) -> Re
     let kind = src.get("source").and_then(Value::as_str).unwrap_or_default();
     if kind == "npm" {
         return Ok(Changelog::unavailable(
-            "This plugin is an npm package, which doesn't come with a history Skillshelf can read.",
+            "This plugin is an npm package, which doesn't come with a history Kitkeeper can read.",
         ));
     }
     let url = match kind {
@@ -599,7 +599,7 @@ async fn skills_cli(
 ) -> Result<Changelog, String> {
     let Some(repo) = repo else {
         return Ok(Changelog::unavailable(
-            "Only skills installed from GitHub have a history Skillshelf can read.",
+            "Only skills installed from GitHub have a history Kitkeeper can read.",
         ));
     };
     let folder = skill_folder(skill_path);
@@ -626,7 +626,7 @@ async fn skills_cli(
 
     let found = match folder_hash {
         None => Err(
-            "The skills lockfile has no folder hash for this skill, so Skillshelf can't tell which version you have."
+            "The skills lockfile has no folder hash for this skill, so Kitkeeper can't tell which version you have."
                 .to_string(),
         ),
         Some(hash) => {

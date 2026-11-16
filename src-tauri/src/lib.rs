@@ -100,7 +100,7 @@ async fn check_updates(app: AppHandle, state: State<'_, AppState>) -> Result<Che
     Ok(result)
 }
 
-/// When Skillshelf runs from its git clone: how far behind origin's default branch it is. `None`
+/// When Kitkeeper runs from its git clone: how far behind origin's default branch it is. `None`
 /// for installed copies, which use the release updater.
 #[tauri::command]
 async fn clone_status() -> Result<Option<selfupdate::CloneStatus>, String> {
@@ -113,7 +113,7 @@ async fn clone_status() -> Result<Option<selfupdate::CloneStatus>, String> {
 /// Pulls, rebuilds and starts the new build, then quits. Output arrives as `clone-update-log` events.
 #[tauri::command]
 async fn clone_update(app: AppHandle) -> Result<(), String> {
-    let dir = selfupdate::clone_dir().ok_or("Skillshelf isn't running from a git clone")?;
+    let dir = selfupdate::clone_dir().ok_or("Kitkeeper isn't running from a git clone")?;
     let built = selfupdate::update(&dir, |l| {
         let _ = app.emit("clone-update-log", l);
     })
@@ -138,7 +138,7 @@ fn update_tray(app: AppHandle, state: State<'_, AppState>, summary: tray::TraySt
     tray::update(&app, &summary).map_err(|e| e.to_string())
 }
 
-/// Starts Skillshelf hidden in the tray at login, or stops doing so.
+/// Starts Kitkeeper hidden in the tray at login, or stops doing so.
 #[tauri::command]
 fn set_autostart(app: AppHandle, on: bool) -> Result<(), String> {
     let launcher = app.autolaunch();
@@ -244,7 +244,7 @@ fn open_item_repo(app: AppHandle, state: State<'_, AppState>, item_id: String) -
     app.opener().open_url(url, None::<&str>).map_err(|e| e.to_string())
 }
 
-/// Opens one of Skillshelf's own pages on GitHub. The UI names the page; the URLs are fixed here.
+/// Opens one of Kitkeeper's own pages on GitHub. The UI names the page; the URLs are fixed here.
 #[tauri::command]
 fn open_project_page(app: AppHandle, page: String) -> Result<(), String> {
     const REPO: &str = "https://github.com/sanchezrobertodev/skillshelf";
@@ -413,10 +413,15 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_notification::init())
-        .plugin(tauri_plugin_autostart::init(
-            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
-            Some(vec![HIDDEN]),
-        ))
+        // Kitkeeper was Skillshelf before 0.6.0. The login item keeps the old name (the default is the product name),
+        // so the one users already have still shows in the toggle and keeps an "off" set in the system's settings.
+        // The builder's macOS default is a LaunchAgent, as before.
+        .plugin(
+            tauri_plugin_autostart::Builder::new()
+                .app_name("Skillshelf")
+                .args([HIDDEN])
+                .build(),
+        )
         // With a tray icon, closing the window hides it so scheduled checks keep running, unless
         // the user chose to quit instead. Quit from the tray.
         .on_window_event(|window, event| {
@@ -498,7 +503,7 @@ pub fn run() {
         });
 }
 
-/// Passed by the login item, which starts Skillshelf in the tray.
+/// Passed by the login item, which starts Kitkeeper in the tray.
 const HIDDEN: &str = "--hidden";
 
 /// Asks the UI to rescan and check once the chosen interval has passed since the last check.

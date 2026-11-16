@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { api, errorText } from "./api";
 import type { AppUpdate, CloneStatus, DownloadProgress } from "./types";
 
-/** Skillshelf's own updates (the Tauri updater), separate from skill/plugin updates in store.ts. */
+/** Kitkeeper's own updates (the Tauri updater), separate from skill/plugin updates in store.ts. */
 export type AppUpdatePhase = "idle" | "checking" | "upToDate" | "available" | "installing" | "error";
 
 interface AppUpdateState {

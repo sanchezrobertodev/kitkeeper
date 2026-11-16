@@ -144,7 +144,7 @@ function mockChangelog(item: Item): Changelog {
         label: "Commits in the marketplace that touched this plugin",
         sections: sections.slice(0, 2),
         sectionsLabel: "CHANGELOG.md",
-        note: "The installed commit isn't in the local marketplace copy, so Skillshelf can't tell which commits are new.",
+        note: "The installed commit isn't in the local marketplace copy, so Kitkeeper can't tell which commits are new.",
       };
     const entries = commits(repo, item.id, [
       "docs(model-caching): load volume-backed models via VolumeCache (#86)",
@@ -348,7 +348,7 @@ export const mockApi = {
   },
   // No tray in the browser; the title shows what the window title would.
   updateTray: async (s: TraySummary) => {
-    document.title = s.tokens ? s.text["tray.title"].replace("{tokens}", `${Math.round(s.tokens / 1000)}k`) : "Skillshelf";
+    document.title = s.tokens ? s.text["tray.title"].replace("{tokens}", `${Math.round(s.tokens / 1000)}k`) : "Kitkeeper";
   },
   onTray: async () => () => {},
   onScheduledCheck: async () => () => {},
@@ -386,7 +386,7 @@ export const mockApi = {
       date: new Date().toISOString(),
       notes: `### Added
 
-- In-app updates: Skillshelf checks for new versions and installs them.
+- In-app updates: Kitkeeper checks for new versions and installs them.
 - \`CHANGELOG.md\`
 
 ### Fixed

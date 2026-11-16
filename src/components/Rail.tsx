@@ -29,11 +29,23 @@ export function Rail() {
 
   return (
     <nav aria-label={t("rail.sections")} className="flex w-20 shrink-0 flex-col items-center gap-1.5 border-r border-border bg-surface py-3">
-      <svg aria-label="Skillshelf" role="img" viewBox="0 0 24 24" className="mb-3 size-7 text-accent">
-        <rect x="3" y="4" width="4" height="16" rx="1" fill="currentColor" />
-        <rect x="9" y="7" width="4" height="13" rx="1" fill="currentColor" opacity="0.7" />
-        <rect x="15.5" y="5" width="4" height="15" rx="1" fill="currentColor" opacity="0.45" transform="rotate(-12 17.5 12.5)" />
-        <rect x="2" y="20" width="20" height="1.6" rx="0.8" fill="currentColor" />
+      {/* The Drop socket mark, one colour (design-system/skillshelf/icon-drop-socket-tray.svg). */}
+      <svg aria-label="Kitkeeper" role="img" viewBox="0 0 32 32" className="mb-3 size-7 text-accent">
+        <mask id="rail-logo" maskUnits="userSpaceOnUse" x="0" y="0" width="32" height="32">
+          <polygon points="16,9.8 28.6,17.1 16,24.4 3.4,17.1" fill="#fff" />
+          <polygon points="3.4,17.1 16,24.4 16,30.5 3.4,23.2" fill="#fff" />
+          <polygon points="28.6,17.1 16,24.4 16,30.5 28.6,23.2" fill="#fff" />
+          <polygon points="16,13.3 22.7,17.1 16,21 9.3,17.1" fill="#000" />
+          <polygon points="16,1.5 22,4.9 16,8.4 10,4.9" fill="#fff" />
+          <polygon points="10,4.9 16,8.4 16,15.3 10,11.8" fill="#fff" />
+          <polygon points="22,4.9 16,8.4 16,15.3 22,11.8" fill="#fff" />
+          <g fill="none" stroke="#000" strokeWidth="2" strokeLinejoin="round">
+            <polyline points="16,1.5 22,4.9 22,11.8 16,15.3 10,11.8 10,4.9 16,1.5" />
+            <polyline points="10,4.9 16,8.4 22,4.9" />
+            <polyline points="16,8.4 16,15.3" />
+          </g>
+        </mask>
+        <rect width="32" height="32" fill="currentColor" mask="url(#rail-logo)" />
       </svg>
       {screens.map(({ id, label, icon: Icon }) => (
         <button
