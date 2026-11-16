@@ -43,7 +43,16 @@
       ${IfThen} ${FileExists} "$SMPROGRAMS\Skillshelf.lnk" ${|} StrCpy $R3 1 ${|}
       ${IfThen} ${FileExists} "$DESKTOP\Skillshelf.lnk" ${|} StrCpy $R4 1 ${|}
     ${EndIf}
-    ${If} $R2 == $INSTDIR
+    ; The same folder however it is spelled (a trailing backslash, a short name, a subst drive): a file made in
+    ; $INSTDIR shows up under $R2. Comparing the strings would miss those and run Kitkeeper's own uninstaller below.
+    ; The string compare stays for when the file can't be made (a path near the 260-character limit).
+    StrCpy $R5 0
+    FileOpen $0 "$INSTDIR\kitkeeper-same-folder.tmp" w
+    FileClose $0
+    ${IfThen} ${FileExists} "$R2\kitkeeper-same-folder.tmp" ${|} StrCpy $R5 1 ${|}
+    Delete "$INSTDIR\kitkeeper-same-folder.tmp"
+    ${If} $R5 = 1
+    ${OrIf} $R2 == $INSTDIR
       ; Installed into the old folder: Kitkeeper already replaced skillshelf.exe and uninstall.exe there, so the
       ; Skillshelf entry in Apps would uninstall Kitkeeper. Only the old name goes; no file is deleted.
       DeleteRegKey SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Skillshelf"
@@ -61,11 +70,28 @@
       ${If} $R7 != ""
         WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "Skillshelf" "$INSTDIR\${MAINBINARYNAME}.exe --hidden"
       ${EndIf}
-      ; Turned on with an admin token (UAC off), the login item is in HKLM, which the uninstall leaves pointing at the
-      ; old exe. Without admin rights the write fails and changes nothing.
+      ; Turned on with an admin token, the login item is in HKLM, which the uninstall leaves pointing at the old exe.
+      ; Without admin rights that write fails, so it goes in HKCU instead, where it starts Kitkeeper all the same,
+      ; unless Task Manager has it "Disabled" in HKLM (StartupApproved, odd first byte), which HKCU would not inherit.
       ReadRegStr $R8 HKLM "Software\Microsoft\Windows\CurrentVersion\Run" "Skillshelf"
       ${If} $R8 != ""
+        ClearErrors
         WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Run" "Skillshelf" "$INSTDIR\${MAINBINARYNAME}.exe --hidden"
+        ${If} ${Errors}
+          ; ReadRegStr can't read REG_BINARY. 0x10008 = RRF_RT_REG_BINARY | RRF_SUBKEY_WOW6464KEY.
+          StrCpy $6 0
+          System::Alloc 16
+          Pop $9
+          System::Call 'advapi32::RegGetValueW(p 0x80000002, w "Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run", w "Skillshelf", i 0x10008, p 0, p r9, *i 16) i .r8'
+          ${If} $8 = 0
+            System::Call '*$9(&i1 .r6)'
+          ${EndIf}
+          System::Free $9
+          IntOp $6 $6 & 1
+          ${If} $6 = 0
+            WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "Skillshelf" "$INSTDIR\${MAINBINARYNAME}.exe --hidden"
+          ${EndIf}
+        ${EndIf}
         ClearErrors
       ${EndIf}
       ; The Skillshelf entry in Apps goes even if files are left: its uninstaller's "Delete app data" box would delete
