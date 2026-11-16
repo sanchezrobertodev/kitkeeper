@@ -15,6 +15,11 @@ Each version's section is also its GitHub release notes and the "What's new" tex
 - On macOS, updating in the app keeps the file name, so Finder and the Dock still say Skillshelf. To change that, quit the app, rename Skillshelf to Kitkeeper in Applications and open it again. If you download Kitkeeper instead, delete the old Skillshelf and pin Kitkeeper to the Dock again. Either way, if you use start at login, turn it off and on once.
 - On Linux, the `.deb` and `.rpm` packages replace the Skillshelf package. If you had pinned Skillshelf to your dock or panel, pin Kitkeeper again. Updating the AppImage in the app keeps its file name. If you rename it, or download the Kitkeeper AppImage and delete the old one, turn start at login off and on once if you use it.
 
+### Notes
+
+- 0.5.0 was not released on its own, so this update also brings its changes: Brazilian Portuguese, German, French and Japanese, a bluer Indigo theme, 15 fixes and two security fixes. They're listed under [0.5.0 in the changelog](https://github.com/sanchezrobertodev/skillshelf/blob/master/CHANGELOG.md#050---2026-11-02).
+- If you run Skillshelf 0.4.0 or earlier from a git clone on Windows, this update still runs the old updater and can fail. If it does, quit Skillshelf, run `git pull --ff-only`, `npm ci` and `npm run tauri build -- --no-bundle` in the clone, then start `src-tauri/target/release/skillshelf.exe`.
+
 ## [0.5.0] - 2026-11-02
 
 ### Added
