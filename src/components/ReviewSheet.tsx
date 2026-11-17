@@ -204,7 +204,7 @@ export function ReviewSheet({ items }: { items: Item[] }) {
           <Button onClick={close}>{t("common.cancel")}</Button>
           <Button
             data-autofocus
-            variant="primary"
+            variant="update"
             disabled={!chosen.length}
             onClick={() => {
               close();

@@ -316,7 +316,7 @@ export function Settings() {
                     {path ? (
                       <span className="font-mono break-all">{path}</span>
                     ) : (
-                      <span className="text-warn">{t("settings.notFound", { why: t(why) })}</span>
+                      <span className="text-info">{t("settings.notFound", { why: t(why) })}</span>
                     )}
                   </dd>
                 </div>

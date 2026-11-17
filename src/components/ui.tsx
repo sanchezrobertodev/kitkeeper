@@ -80,7 +80,7 @@ const statusStyle: Record<Status, { icon: typeof CircleCheck; cls: string }> = {
   error: { icon: CircleAlert, cls: "text-danger bg-danger/10 border-danger/35" },
   unknown: { icon: CircleHelp, cls: "text-muted bg-surface-2 border-border" },
   unchecked: { icon: Clock, cls: "text-muted bg-surface-2 border-border" },
-  upToDate: { icon: CircleCheck, cls: "text-accent bg-accent/10 border-accent/30" },
+  upToDate: { icon: CircleCheck, cls: "text-muted bg-surface-2 border-border" },
   managed: { icon: Building2, cls: "text-info bg-info/10 border-info/30" },
   untracked: { icon: CircleDashed, cls: "text-muted bg-surface-2 border-border" },
   moved: { icon: FolderSymlink, cls: "text-info bg-info/10 border-info/30" },
@@ -111,7 +111,7 @@ export function StatusBadge({ status, checking, title }: { status: Status; check
 
 export function KindIcon({ kind, className }: { kind: Kind; className?: string }) {
   const Icon = kind === "plugin" ? Puzzle : ScrollText;
-  return <Icon aria-hidden className={cx("shrink-0", kind === "plugin" ? "text-info" : "text-accent", className)} />;
+  return <Icon aria-hidden className={cx("shrink-0", kind === "plugin" ? "text-info" : "text-muted", className)} />;
 }
 
 export function Checkbox({
@@ -252,7 +252,7 @@ export function Modal({
         aria-labelledby="modal-title"
         onMouseDown={(e) => e.stopPropagation()}
         className={cx(
-          "flex max-h-[85vh] w-full flex-col rounded-xl border border-card-border bg-surface shadow-2xl",
+          "flex max-h-[85vh] w-full flex-col rounded-2xl border border-card-border bg-surface shadow-2xl",
           wide ? "max-w-2xl" : "max-w-lg",
         )}
       >

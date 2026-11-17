@@ -3,6 +3,7 @@
   "common.close": "Fechar",
   "common.dismiss": "Dispensar",
   "common.remove": "Remover {name}",
+  "common.ctrl": "Ctrl",
 
   "app.restartNeeded": "As alterações nos plugins entram em vigor quando você reiniciar o Claude Code.",
   "app.usageFailed": "Não foi possível contar os usos nas suas transcrições: {error}",
@@ -185,7 +186,7 @@
   "list.emptyHint": "O Kitkeeper procura plugins e skills em ~/.claude. Instale algo com claude plugin install ou npx skills add e depois recarregue.",
   "list.clearFilters": "Limpar filtros",
   "list.showing": "Mostrando {shown} de {total}",
-  "list.keys": "↑↓ mover · Espaço selecionar · Enter detalhes · Shift F10 ações · Ctrl A selecionar tudo",
+  "list.keys": "↑↓ mover · Espaço selecionar · Enter detalhes · Shift F10 ações · {mod} A selecionar tudo",
 
   "filters.title": "Filtros",
   "filters.clear": "Limpar {count}",
@@ -224,6 +225,7 @@
   "toolbar.review_one": "Revisar {count} atualização",
   "toolbar.review_other": "Revisar {count} atualizações",
   "toolbar.noUpdates": "Sem atualizações",
+  "toolbar.reviewUpdates": "Revisar atualizações",
 
   "menu.itemActions": "Ações de {name}",
   "menu.itemsActions": "Ações para {count} itens",
@@ -254,8 +256,10 @@
   "detail.enable": "Ativar",
   "detail.disable": "Desativar",
   "detail.openFolder": "Abrir pasta",
-  "detail.repo": "Código-fonte",
+  "detail.repo": "Abrir repo",
   "detail.uninstall": "Desinstalar",
+  "detail.showMore": "Mostrar mais",
+  "detail.showLess": "Mostrar menos",
   "detail.type": "Tipo",
   "detail.source": "Origem",
   "detail.from": "Procedência",

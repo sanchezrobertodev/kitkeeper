@@ -3,7 +3,7 @@ import { ArrowDown, ArrowUp, ArrowUpDown, CircleAlert, Download, FilterX, Power,
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { t, useT } from "../i18n";
 import { cx } from "../lib/cx";
-import { canToggle, canUninstall, issueText, kindLabel, relativeTime, sourceLabel } from "../lib/format";
+import { canToggle, canUninstall, issueText, kindLabel, modKey, relativeTime, sourceLabel } from "../lib/format";
 import { loadsEverywhere, shortCount } from "../lib/insights";
 import type { SortKey } from "../lib/prefs";
 import { isActive, updatable, useStore } from "../store";
@@ -108,32 +108,37 @@ function RowActions({ item, busy }: { item: Item; busy: boolean }) {
   const run = useStore((s) => s.run);
   const confirm = useStore((s) => s.confirm);
   return (
-    <div className="flex items-center justify-end gap-2">
-      {updatable([item]).length > 0 && (
-        <button
-          type="button"
-          tabIndex={-1}
-          aria-label={t("list.update", { name: item.name })}
-          title={t("list.update", { name: item.name })}
-          disabled={busy}
-          onClick={(e) => {
-            e.stopPropagation();
-            confirm({ type: "update", items: [item] });
-          }}
-          className="inline-flex size-8 items-center justify-center rounded-lg bg-warn/12 text-warn transition-colors duration-150 hover:enabled:bg-warn/22 disabled:opacity-50"
-        >
-          <Download aria-hidden className="size-4" />
-        </button>
-      )}
-      {canToggle(item) && (
-        <Switch
-          tabIndex={-1}
-          label={t("list.enabled", { name: item.name })}
-          checked={item.enabled !== false}
-          disabled={busy}
-          onChange={() => void run([{ itemId: item.id, action: item.enabled === false ? "enable" : "disable" }])}
-        />
-      )}
+    // Two fixed slots, so download icons and switches line up down the list whichever ones a row has.
+    <div className="grid grid-cols-[32px_36px] items-center gap-2">
+      <div className="flex">
+        {updatable([item]).length > 0 && (
+          <button
+            type="button"
+            tabIndex={-1}
+            aria-label={t("list.update", { name: item.name })}
+            title={t("list.update", { name: item.name })}
+            disabled={busy}
+            onClick={(e) => {
+              e.stopPropagation();
+              confirm({ type: "update", items: [item] });
+            }}
+            className="inline-flex size-8 items-center justify-center rounded-lg bg-warn/12 text-warn transition-colors duration-150 hover:enabled:bg-warn/22 disabled:opacity-50"
+          >
+            <Download aria-hidden className="size-4" />
+          </button>
+        )}
+      </div>
+      <div className="flex">
+        {canToggle(item) && (
+          <Switch
+            tabIndex={-1}
+            label={t("list.enabled", { name: item.name })}
+            checked={item.enabled !== false}
+            disabled={busy}
+            onChange={() => void run([{ itemId: item.id, action: item.enabled === false ? "enable" : "disable" }])}
+          />
+        )}
+      </div>
     </div>
   );
 }
@@ -157,7 +162,7 @@ function BulkBar({ items }: { items: Item[] }) {
       </span>
       <Button
         size="sm"
-        variant="primary"
+        variant="update"
         disabled={!toUpdate.length}
         onClick={() => confirm({ type: "update", items: toUpdate })}
       >
@@ -481,7 +486,7 @@ export function ItemList({ rows }: { rows: Item[] }) {
 
       <footer className="flex h-8 shrink-0 items-center gap-4 border-t border-border bg-surface px-4 text-xs text-muted">
         <span>{t("list.showing", { shown: rows.length, total })}</span>
-        <span className="hidden md:inline">{t("list.keys")}</span>
+        <span className="hidden md:inline">{t("list.keys", { mod: modKey() })}</span>
       </footer>
       {menu && <ContextMenu target={menu} onClose={closeMenu} />}
     </section>
