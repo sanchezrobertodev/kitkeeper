@@ -56,7 +56,7 @@ function Group<T extends string>({
                   className="size-3.5 accent-[var(--accent)]"
                 />
                 <span className="min-w-0 flex-1 truncate">{o.label}</span>
-                <span className={cx("font-mono text-xs tabular-nums", o.count ? "text-muted" : "text-muted/60")}>
+                <span className="font-mono text-xs text-muted tabular-nums">
                   {o.count}
                 </span>
               </label>

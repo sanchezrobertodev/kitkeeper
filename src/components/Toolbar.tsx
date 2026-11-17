@@ -1,7 +1,7 @@
 import { Download, LoaderCircle, RefreshCw, Search, X } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { type TKey, useT } from "../i18n";
-import { relativeTime } from "../lib/format";
+import { modKey, relativeTime } from "../lib/format";
 import { type Screen, updatable, useStore } from "../store";
 import { Button, IconButton, Kbd } from "./ui";
 
@@ -56,7 +56,7 @@ export function Toolbar() {
   return (
     <header className="flex h-16 shrink-0 items-center gap-3 px-5">
       <h1 className="shrink-0 text-lg font-semibold tracking-tight">{t(titles[screen])}</h1>
-      <span className="hidden shrink-0 text-xs whitespace-nowrap text-muted lg:inline" aria-live="polite">
+      <span className="shrink-0 text-xs whitespace-nowrap text-muted max-lg:sr-only" aria-live="polite">
         {status}
       </span>
 
@@ -72,7 +72,7 @@ export function Toolbar() {
           }}
           placeholder={t("toolbar.searchPlaceholder")}
           aria-label={t("toolbar.search")}
-          className="h-9 w-full rounded-lg border border-border bg-surface pr-16 pl-9 text-sm shadow-card placeholder:text-muted focus-visible:outline-2"
+          className="h-9 w-full rounded-lg border border-border bg-surface pr-16 pl-9 text-sm shadow-card placeholder:text-muted focus-visible:outline-2 [&::-webkit-search-cancel-button]:appearance-none"
         />
         <div className="absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-1">
           {query ? (
@@ -80,7 +80,7 @@ export function Toolbar() {
               <X className="size-3.5" />
             </IconButton>
           ) : (
-            <Kbd>Ctrl K</Kbd>
+            <Kbd>{modKey()} K</Kbd>
           )}
         </div>
       </div>
@@ -95,7 +95,11 @@ export function Toolbar() {
       </Button>
       <Button variant="update" disabled={!toUpdate.length} onClick={() => confirm({ type: "update", items: toUpdate })}>
         <Download aria-hidden className="size-4" />
-        {toUpdate.length ? t("toolbar.review", { count: toUpdate.length }) : t("toolbar.noUpdates")}
+        {toUpdate.length
+          ? t("toolbar.review", { count: toUpdate.length })
+          : busy === "idle"
+            ? t("toolbar.noUpdates")
+            : t("toolbar.reviewUpdates")}
       </Button>
     </header>
   );

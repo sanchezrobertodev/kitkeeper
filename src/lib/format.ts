@@ -10,6 +10,9 @@ function labels<K extends string>(keys: Record<K, TKey>): Record<K, string> {
 
 export const kindLabel = labels<Kind>({ plugin: "kind.plugin", skill: "kind.skill" });
 
+/** The shortcut modifier as the keyboard labels it: ⌘ on macOS, Ctrl (Strg…) elsewhere. */
+export const modKey = () => (navigator.platform.startsWith("Mac") ? "⌘" : t("common.ctrl"));
+
 export const sourceLabel = labels<Source>({
   marketplace: "source.marketplace",
   synced: "source.synced",
