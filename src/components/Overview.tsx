@@ -9,22 +9,39 @@ import {
   LoaderCircle,
   RefreshCw,
   Server,
+  TrendingUp,
 } from "lucide-react";
 import { useId, type ReactNode } from "react";
-import { useT } from "../i18n";
+import { locale, useT } from "../i18n";
 import { cx } from "../lib/cx";
 import { issueText, relativeTime } from "../lib/format";
 import { isUnused, loadsEverywhere, sessionTokens, shortCount } from "../lib/insights";
+import type { SortKey } from "../lib/prefs";
 import { updatable, useStore } from "../store";
 import { Button, card } from "./ui";
 import { mcpMeta } from "./McpServers";
+import { Sparkline } from "./Sparkline";
 
-const TOP = 5;
+const TOP = 8;
+/** Chart tiles take two columns once the grid has three. */
+const wide = "@min-[924px]:col-span-2";
 
-function Tile({ title, icon: Icon, children, actions }: { title: string; icon: typeof Gauge; children: ReactNode; actions?: ReactNode }) {
+function Tile({
+  title,
+  icon: Icon,
+  children,
+  actions,
+  className,
+}: {
+  title: string;
+  icon: typeof Gauge;
+  children: ReactNode;
+  actions?: ReactNode;
+  className?: string;
+}) {
   const id = useId();
   return (
-    <section aria-labelledby={id} className={cx(card, "flex flex-col p-4")}>
+    <section aria-labelledby={id} className={cx(card, "flex flex-col p-4", className)}>
       <h2 id={id} className="mb-3 flex items-center gap-2 text-[11px] font-semibold tracking-wider text-muted uppercase">
         <Icon aria-hidden className="size-4" />
         {title}
@@ -44,6 +61,55 @@ function Big({ value, label, tone }: { value: ReactNode; label: string; tone?: s
   );
 }
 
+interface Bar {
+  id: string;
+  name: string;
+  value: number;
+  /** The value as shown at the bar's tip. */
+  text: string;
+  /** Shown on hover and focus, and read as the row's description. */
+  detail: string;
+}
+
+/** Ranked horizontal bars in the accent, largest first, value at each tip. A row opens its item in the Library. */
+function RankedBars({ label, rows }: { label: string; rows: Bar[] }) {
+  const reveal = useStore((s) => s.reveal);
+  const id = useId();
+  const max = Math.max(1, ...rows.map((r) => r.value));
+  return (
+    <ol aria-label={label} className="mt-4 space-y-0.5">
+      {rows.map((r, i) => (
+        <li key={r.id}>
+          <button
+            type="button"
+            onClick={() => reveal(r.id)}
+            aria-describedby={`${id}-${i}`}
+            className="group relative grid w-full grid-cols-[minmax(0,2fr)_minmax(0,3fr)] items-center gap-3 rounded-md px-1.5 py-1 text-left text-xs transition-colors duration-100 hover:bg-surface-hover focus-visible:bg-surface-hover"
+          >
+            <span className="truncate">{r.name}</span>
+            <span className="flex min-w-0 items-center gap-2">
+              {/* Leaves 56px for the value, so the longest bar's label still fits. */}
+              <span
+                aria-hidden
+                className="h-2.5 shrink-0 rounded-e-[4px] bg-accent transition-opacity duration-100 group-hover:opacity-80"
+                style={{ width: `max(2px, calc((100% - 56px) * ${r.value / max}))` }}
+              />
+              <span className="font-mono text-muted tabular-nums">{r.text}</span>
+            </span>
+            <span
+              id={`${id}-${i}`}
+              aria-hidden
+              className="pointer-events-none absolute bottom-full left-[40%] z-10 mb-1 rounded-md border border-card-border bg-surface px-2 py-1 whitespace-nowrap opacity-0 shadow-lg transition-opacity duration-100 group-hover:opacity-100 group-focus-visible:opacity-100"
+            >
+              <span className="font-semibold">{r.text}</span> <span className="text-muted">{r.detail}</span>
+            </span>
+          </button>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
 export function Overview() {
   const t = useT();
   const items = useStore((s) => s.items);
@@ -55,7 +121,6 @@ export function Overview() {
   const checkedAt = useStore((s) => s.checkedAt);
   const confirm = useStore((s) => s.confirm);
   const browse = useStore((s) => s.browse);
-  const reveal = useStore((s) => s.reveal);
   const setScreen = useStore((s) => s.setScreen);
   const checkUpdates = useStore((s) => s.checkUpdates);
   const loadMcp = useStore((s) => s.loadMcp);
@@ -80,7 +145,15 @@ export function Overview() {
     .filter((i) => loadsEverywhere(i) && i.cost?.total)
     .sort((a, b) => (b.cost?.total ?? 0) - (a.cost?.total ?? 0))
     .slice(0, TOP);
-  const max = heavy[0]?.cost?.total ?? 1;
+  const used = usage
+    ? items
+        .filter((i) => usage[i.id]?.uses)
+        .sort((a, b) => usage[b.id].uses - usage[a.id].uses)
+        .slice(0, TOP)
+    : [];
+  const totalUses = usage ? items.reduce((n, i) => n + (usage[i.id]?.uses ?? 0), 0) : 0;
+  // Every item's uses per day, for the 30-day trend.
+  const daily = Array.from({ length: 30 }, (_, d) => items.reduce((n, i) => n + (usage?.[i.id]?.daily[d] ?? 0), 0));
   const unused = usage ? items.filter((i) => isUnused(i, usage)) : null;
   const unusedTokens = unused?.reduce((n, i) => n + (i.cost?.total ?? 0), 0) ?? 0;
   const withIssues = items.filter((i) => i.issues.length);
@@ -90,13 +163,13 @@ export function Overview() {
   const plugins = items.filter((i) => i.kind === "plugin");
   const off = plugins.filter((i) => i.enabled === false).length;
 
-  const byCost = () => {
-    useStore.setState({ sort: { key: "cost", desc: true } });
+  const sortBy = (key: SortKey) => {
+    useStore.setState({ sort: { key, desc: true } });
     browse({});
   };
 
   return (
-    <div className="grid min-h-0 flex-1 auto-rows-min grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-3 overflow-y-auto px-5 pb-4">
+    <div className="@container grid min-h-0 flex-1 grid-flow-row-dense auto-rows-min grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-3 overflow-y-auto px-5 pb-4">
       <Tile
         title={t("overview.updates")}
         icon={CircleArrowUp}
@@ -130,27 +203,64 @@ export function Overview() {
       <Tile
         title={t("overview.context")}
         icon={Gauge}
+        className={wide}
         actions={
-          <Button size="sm" onClick={byCost}>
+          <Button size="sm" onClick={() => sortBy("cost")}>
             {t("overview.sortByCost")}
           </Button>
         }
       >
         <Big value={`≈${shortCount(tokens)}`} label={t("overview.tokensLabel")} />
         {heavy.length > 0 && (
-          <ol aria-label={t("overview.heaviest")} className="mt-3 space-y-1.5">
-            {heavy.map((i) => (
-              <li key={i.id} className="grid grid-cols-[minmax(0,1fr)_72px_40px] items-center gap-2 text-xs">
-                <button type="button" onClick={() => reveal(i.id)} className="truncate rounded text-left hover:underline">
-                  {i.name}
-                </button>
-                <span aria-hidden className="h-1.5 rounded-full bg-surface-2">
-                  <span className="block h-full rounded-full bg-accent" style={{ width: `${((i.cost?.total ?? 0) / max) * 100}%` }} />
-                </span>
-                <span className="text-right font-mono text-muted tabular-nums">{shortCount(i.cost?.total ?? 0)}</span>
-              </li>
-            ))}
-          </ol>
+          <RankedBars
+            label={t("overview.heaviest")}
+            rows={heavy.map((i) => ({
+              id: i.id,
+              name: i.name,
+              value: i.cost?.total ?? 0,
+              text: `≈${shortCount(i.cost?.total ?? 0)}`,
+              detail: t("overview.share", { percent: Math.round(((i.cost?.total ?? 0) / Math.max(1, tokens)) * 100) }),
+            }))}
+          />
+        )}
+      </Tile>
+
+      <Tile
+        title={t("overview.mostUsed")}
+        icon={TrendingUp}
+        className={wide}
+        actions={
+          used.length > 0 && (
+            <Button size="sm" onClick={() => sortBy("uses")}>
+              {t("overview.sortByUses")}
+            </Button>
+          )
+        }
+      >
+        {usage ? (
+          <>
+            <div className="flex items-end justify-between gap-4">
+              <Big value={totalUses.toLocaleString(locale())} label={t("overview.usesLabel", { count: totalUses })} />
+              <Sparkline daily={daily} className="mb-1 h-10 w-40 shrink-0" />
+            </div>
+            {used.length > 0 && (
+              <RankedBars
+                label={t("overview.topUsed")}
+                rows={used.map((i) => ({
+                  id: i.id,
+                  name: i.name,
+                  value: usage[i.id].uses,
+                  text: String(usage[i.id].uses),
+                  detail: t("detail.lastUsed", { time: relativeTime(usage[i.id].lastUsed) }),
+                }))}
+              />
+            )}
+          </>
+        ) : (
+          <p className="flex items-center gap-1.5 text-[13px] text-muted">
+            <LoaderCircle aria-hidden className="size-4 animate-spin" />
+            {progress?.total ? t("cleanup.countingProgress", { read: progress.read, total: progress.total }) : t("cleanup.counting")}
+          </p>
         )}
       </Tile>
 

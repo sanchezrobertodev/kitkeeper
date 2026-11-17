@@ -60,9 +60,11 @@ export function sortItems(items: Item[], key: SortKey, desc: boolean, usage: Usa
     source: (a, b) => collator.compare(a.source, b.source) || collator.compare(a.origin ?? "", b.origin ?? ""),
     version: (a, b) => collator.compare(a.version ?? "", b.version ?? ""),
     status: (a, b) => statusOrder[a.status] - statusOrder[b.status],
-    updated: (a, b) => (a.updatedAt ?? a.installedAt ?? "").localeCompare(b.updatedAt ?? b.installedAt ?? ""),
+    updated: (a, b) => (a.updatedAt ?? "").localeCompare(b.updatedAt ?? ""),
+    installed: (a, b) => (a.installedAt ?? "").localeCompare(b.installedAt ?? ""),
     cost: (a, b) => (a.cost?.total ?? 0) - (b.cost?.total ?? 0),
     uses: (a, b) => (usage?.[a.id]?.uses ?? -1) - (usage?.[b.id]?.uses ?? -1),
+    lastUsed: (a, b) => (usage?.[a.id]?.lastUsed ?? "").localeCompare(usage?.[b.id]?.lastUsed ?? ""),
   };
   return [...items].sort((a, b) => cmp[key](a, b) * dir || byName(a, b));
 }
