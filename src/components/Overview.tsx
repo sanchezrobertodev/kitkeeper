@@ -145,15 +145,24 @@ export function Overview() {
     .filter((i) => loadsEverywhere(i) && i.cost?.total)
     .sort((a, b) => (b.cost?.total ?? 0) - (a.cost?.total ?? 0))
     .slice(0, TOP);
+  // usage.rs credits uses by kind and name, so installs that share both report the same uses: count them once.
+  // An install outside projects sees every transcript, so its uses already hold its project copies' uses.
+  const groups = new Map<string, typeof items>();
+  for (const i of items) {
+    const key = `${i.kind}:${i.name}`;
+    groups.set(key, [...(groups.get(key) ?? []), i]);
+  }
+  // shortcut: same-named project items each count their own project, so nested project folders count twice; move this into usage.rs if that shows up.
+  const counted = [...groups.values()].flatMap((g) => g.find((i) => i.source !== "project") ?? g);
   const used = usage
-    ? items
+    ? counted
         .filter((i) => usage[i.id]?.uses)
         .sort((a, b) => usage[b.id].uses - usage[a.id].uses)
         .slice(0, TOP)
     : [];
-  const totalUses = usage ? items.reduce((n, i) => n + (usage[i.id]?.uses ?? 0), 0) : 0;
-  // Every item's uses per day, for the 30-day trend.
-  const daily = Array.from({ length: 30 }, (_, d) => items.reduce((n, i) => n + (usage?.[i.id]?.daily[d] ?? 0), 0));
+  const totalUses = usage ? counted.reduce((n, i) => n + (usage[i.id]?.uses ?? 0), 0) : 0;
+  // All uses per day, for the 30-day trend.
+  const daily = Array.from({ length: 30 }, (_, d) => counted.reduce((n, i) => n + (usage?.[i.id]?.daily[d] ?? 0), 0));
   const unused = usage ? items.filter((i) => isUnused(i, usage)) : null;
   const unusedTokens = unused?.reduce((n, i) => n + (i.cost?.total ?? 0), 0) ?? 0;
   const withIssues = items.filter((i) => i.issues.length);
