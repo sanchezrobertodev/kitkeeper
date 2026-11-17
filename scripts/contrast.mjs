@@ -1,5 +1,6 @@
 // Checks every text colour pair of every theme in src/index.css against WCAG contrast: 4.5:1,
-// or 7:1 for the high-contrast theme. Run `node scripts/contrast.mjs`; exits 1 on a failure.
+// or 7:1 for the high-contrast theme, and every accent colour on every other theme.
+// Run `node scripts/contrast.mjs`; exits 1 on a failure.
 
 import { readFileSync } from "node:fs";
 
@@ -7,15 +8,28 @@ const css = readFileSync(new URL("../src/index.css", import.meta.url), "utf8");
 
 // Each `:root…{}` / `[data-palette…]{}` block is one theme: palette from data-palette (default workbench), mode from data-theme.
 const themes = {};
-for (const [, selector, body] of css.matchAll(/((?::root|\[data-palette)[^{]*)\{([^}]*)\}/g)) {
-  const palette = selector.match(/data-palette="(\w+)"/)?.[1] ?? "workbench";
-  const mode = selector.includes('data-theme="dark"') ? "dark" : "light";
+const colours = (body) => {
   const vars = Object.fromEntries([...body.matchAll(/--([\w-]+):\s*(#[0-9a-f]{6})/gi)].map(([, k, v]) => [k, v]));
   const grad = body.match(/--accent-grad:([^;]*)/)?.[1].match(/#[0-9a-f]{6}/gi);
   if (grad) vars.grad = grad;
+  return vars;
+};
+for (const [, selector, body] of css.matchAll(/((?::root|\[data-palette)[^{]*)\{([^}]*)\}/g)) {
+  const palette = selector.match(/data-palette="(\w+)"/)?.[1] ?? "workbench";
+  const mode = selector.includes('data-theme="dark"') ? "dark" : "light";
+  const vars = colours(body);
   // Merge like the cascade: rule blocks such as `[data-palette="workbench"] .card {}` add nothing here.
   const key = `${palette} ${mode}`;
   themes[key] = { ...themes[key], ...vars };
+}
+// `[data-accent="x"]` blocks, keyed "x light" / "x dark". Each replaces the accent tokens of every theme but high contrast.
+const accents = {};
+for (const [, name, dark, body] of css.matchAll(/\[data-accent="(\w+)"\](\[data-theme="dark"\])?\s*\{([^}]*)\}/g))
+  accents[`${name} ${dark ? "dark" : "light"}`] = colours(body);
+for (const [name, v] of Object.entries({ ...themes })) {
+  if (name.startsWith("contrast")) continue;
+  const mode = name.split(" ")[1];
+  for (const [accent, a] of Object.entries(accents)) if (accent.endsWith(mode)) themes[`${name} + ${accent.split(" ")[0]}`] = { ...v, ...a };
 }
 
 const rgb = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));

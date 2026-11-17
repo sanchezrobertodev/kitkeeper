@@ -16,6 +16,7 @@
   "rail.cleanup": "Limpeza",
   "rail.mcp": "MCP",
   "rail.settings": "Ajustes",
+  "rail.update": "Atualizar",
   "rail.themeToggle": "Modo: {current}. Mudar para {next}",
 
   "mode.system": "Sistema",
@@ -27,6 +28,12 @@
   "palette.indigo": "Índigo",
   "palette.rose": "Rosa",
   "palette.contrast": "Alto contraste",
+  "accent.theme": "Tema",
+  "accent.violet": "Violeta",
+  "accent.blue": "Azul",
+  "accent.teal": "Verde-azulado",
+  "accent.green": "Verde",
+  "accent.pink": "Rosa",
 
   "kind.plugin": "Plugin",
   "kind.skill": "Skill",
@@ -83,6 +90,7 @@
   "risk.toolsRemoved": "Remove {tools}.",
 
   "settings.title": "Ajustes",
+  "settings.sections": "Seções dos ajustes",
   "settings.saveFailed": "Não foi possível salvar o ajuste: {error}",
   "settings.general": "Geral",
   "settings.language": "Idioma",
@@ -101,6 +109,9 @@
   "settings.appearance": "Aparência",
   "settings.mode": "Modo",
   "settings.theme": "Tema",
+  "settings.accent": "Cor de destaque",
+  "settings.accentHelp": "Usada em links, chaves, na seleção e nos botões principais. As atualizações mantêm a própria cor.",
+  "settings.accentLocked": "Alto contraste sempre usa as próprias cores.",
   "settings.updates": "Atualizações",
   "settings.checkEvery": "Verificar atualizações de plugins e skills",
   "settings.checkDaily": "Todo dia",

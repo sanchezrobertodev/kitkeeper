@@ -68,6 +68,7 @@ export default function App() {
   const restartNeeded = useStore((s) => s.restartNeeded);
   const theme = useStore((s) => s.theme);
   const palette = useStore((s) => s.palette);
+  const accent = useStore((s) => s.accent);
   const t = useT();
   const screen = useStore((s) => s.screen);
   const usage = useStore((s) => s.usage);
@@ -84,8 +85,8 @@ export default function App() {
   }, []);
 
   useEffect(
-    () => (theme === "system" ? onSystemThemeChange(() => applyTheme("system", palette)) : undefined),
-    [theme, palette],
+    () => (theme === "system" ? onSystemThemeChange(() => applyTheme("system", palette, accent)) : undefined),
+    [theme, palette, accent],
   );
 
   const rows = useMemo(

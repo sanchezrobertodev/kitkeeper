@@ -11,7 +11,7 @@ import { applyLanguage } from "./i18n";
 import { applyTheme, loadPrefs } from "./lib/prefs";
 
 const prefs = loadPrefs();
-applyTheme(prefs.theme, prefs.palette);
+applyTheme(prefs.theme, prefs.palette, prefs.accent);
 applyLanguage(prefs.language);
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(

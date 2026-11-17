@@ -16,6 +16,7 @@
   "rail.cleanup": "Nettoyage",
   "rail.mcp": "MCP",
   "rail.settings": "Paramètres",
+  "rail.update": "Mise à jour",
   "rail.themeToggle": "Mode : {current}. Passer au mode {next}",
 
   "mode.system": "Système",
@@ -27,6 +28,12 @@
   "palette.indigo": "Indigo",
   "palette.rose": "Rose",
   "palette.contrast": "Contraste élevé",
+  "accent.theme": "Thème",
+  "accent.violet": "Violet",
+  "accent.blue": "Bleu",
+  "accent.teal": "Bleu canard",
+  "accent.green": "Vert",
+  "accent.pink": "Rose",
 
   "kind.plugin": "Plugin",
   "kind.skill": "Skill",
@@ -83,6 +90,7 @@
   "risk.toolsRemoved": "Retire {tools}.",
 
   "settings.title": "Paramètres",
+  "settings.sections": "Sections des paramètres",
   "settings.saveFailed": "Impossible d'enregistrer le paramètre : {error}",
   "settings.general": "Général",
   "settings.language": "Langue",
@@ -101,6 +109,9 @@
   "settings.appearance": "Apparence",
   "settings.mode": "Mode",
   "settings.theme": "Thème",
+  "settings.accent": "Couleur d'accent",
+  "settings.accentHelp": "Pour les liens, les interrupteurs, la sélection et les boutons principaux. Les mises à jour gardent leur propre couleur.",
+  "settings.accentLocked": "Contraste élevé utilise toujours ses propres couleurs.",
   "settings.updates": "Mises à jour",
   "settings.checkEvery": "Rechercher des mises à jour de plugins et de skills",
   "settings.checkDaily": "Tous les jours",

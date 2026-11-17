@@ -4,11 +4,23 @@ import { useAppUpdate } from "./appUpdate";
 import { applyLanguage, group, t, type LanguagePref } from "./i18n";
 import { canUpdate } from "./lib/format";
 import { isUnused, sessionTokens } from "./lib/insights";
-import { applyTheme, emptyFilters, loadPrefs, savePrefs, type Filters, type Palette, type Prefs, type SortKey, type Theme } from "./lib/prefs";
+import {
+  type Accent,
+  applyTheme,
+  emptyFilters,
+  type Filters,
+  loadPrefs,
+  type Palette,
+  type Prefs,
+  savePrefs,
+  type SortKey,
+  type Theme,
+} from "./lib/prefs";
 import type { ActionRequest, Item, Job, JobEvent, McpReport, Settings, TraySummary, Usage, UsageProgress } from "./types";
 
 export type Busy = "idle" | "scanning" | "checking";
 export type Screen = "overview" | "library" | "cleanup" | "mcp" | "settings";
+export type SettingsSection = "general" | "appearance" | "updates" | "projects" | "about";
 
 export type Confirmation =
   | { type: "update"; items: Item[] }
@@ -40,6 +52,7 @@ interface State extends Prefs {
   confirmation: Confirmation | null;
   settings: Settings;
   screen: Screen;
+  settingsSection: SettingsSection;
 
   init: () => Promise<void>;
   refresh: (opts?: { check?: boolean }) => Promise<void>;
@@ -59,6 +72,7 @@ interface State extends Prefs {
   setSort: (key: SortKey) => void;
   setTheme: (t: Theme) => void;
   setPalette: (p: Palette) => void;
+  setAccent: (a: Accent) => void;
   setLanguage: (l: LanguagePref) => void;
   setActive: (id: string | null, open?: boolean) => void;
   closeDetail: () => void;
@@ -70,6 +84,7 @@ interface State extends Prefs {
   dismissRestart: () => void;
   dismissWarnings: () => void;
   setScreen: (screen: Screen) => void;
+  setSettingsSection: (section: SettingsSection) => void;
   saveSettings: (s: Settings) => Promise<void>;
 }
 
@@ -103,8 +118,8 @@ let pending: { check?: boolean } | null = null;
 
 export const useStore = create<State>((set, get) => {
   const persist = () => {
-    const { theme, palette, language, sort, filters } = get();
-    savePrefs({ theme, palette, language, sort, filters });
+    const { theme, palette, accent, language, sort, filters } = get();
+    savePrefs({ theme, palette, accent, language, sort, filters });
   };
   const runPending = () => {
     const s = get();
@@ -138,6 +153,7 @@ export const useStore = create<State>((set, get) => {
     confirmation: null,
     settings: { projects: [], autoCheck: true, checkInterval: "daily", closeToTray: true, notifications: true },
     screen: "library",
+    settingsSection: "general",
 
     init: async () => {
       const syncTray = () => {
@@ -322,13 +338,18 @@ export const useStore = create<State>((set, get) => {
       persist();
     },
     setTheme: (theme) => {
-      applyTheme(theme, get().palette);
+      applyTheme(theme, get().palette, get().accent);
       set({ theme });
       persist();
     },
     setPalette: (palette) => {
-      applyTheme(get().theme, palette);
+      applyTheme(get().theme, palette, get().accent);
       set({ palette });
+      persist();
+    },
+    setAccent: (accent) => {
+      applyTheme(get().theme, get().palette, accent);
+      set({ accent });
       persist();
     },
     setLanguage: (language) => {
@@ -355,6 +376,7 @@ export const useStore = create<State>((set, get) => {
     dismissRestart: () => set({ restartNeeded: false }),
     dismissWarnings: () => set({ warnings: [] }),
     setScreen: (screen) => set({ screen }),
+    setSettingsSection: (settingsSection) => set({ settingsSection }),
     saveSettings: async (settings) => {
       const projectsChanged = settings.projects.join("\n") !== get().settings.projects.join("\n");
       await api.saveSettings(settings);

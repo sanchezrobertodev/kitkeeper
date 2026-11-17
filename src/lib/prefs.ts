@@ -7,6 +7,9 @@ export type Theme = "system" | "light" | "dark";
 /** Colour themes in index.css; each has a light and a dark variant. */
 export const palettes = ["workbench", "graphite", "indigo", "rose", "contrast"] as const;
 export type Palette = (typeof palettes)[number];
+/** Accent colours in index.css that replace a palette's own accent; "theme" keeps it. */
+export const accents = ["theme", "violet", "blue", "teal", "green", "pink"] as const;
+export type Accent = (typeof accents)[number];
 export type SortKey = "name" | "kind" | "source" | "version" | "status" | "updated" | "cost" | "uses";
 /** "Show only" filters that cut across type and source. */
 export type Flag = "mod" | "issues" | "unused" | "hooks";
@@ -23,6 +26,7 @@ export interface Filters {
 export interface Prefs {
   theme: Theme;
   palette: Palette;
+  accent: Accent;
   language: LanguagePref;
   sort: { key: SortKey; desc: boolean };
   filters: Filters;
@@ -33,6 +37,7 @@ export const emptyFilters: Filters = { kinds: [], statuses: [], sources: [], ori
 const defaults: Prefs = {
   theme: "system",
   palette: "workbench",
+  accent: "theme",
   language: "system",
   sort: { key: "status", desc: false },
   filters: emptyFilters,
@@ -61,10 +66,18 @@ export function savePrefs(p: Prefs) {
 
 const media = typeof window !== "undefined" ? window.matchMedia("(prefers-color-scheme: dark)") : null;
 
-export function applyTheme(theme: Theme, palette: Palette) {
+/** The `data-accent` for a palette, or undefined to keep its own accent. High contrast always keeps its own. */
+export const accentAttr = (palette: Palette, accent: Accent) =>
+  palette === "contrast" || accent === "theme" ? undefined : accent;
+
+export function applyTheme(theme: Theme, palette: Palette, accent: Accent) {
   const dark = theme === "dark" || (theme === "system" && !!media?.matches);
-  document.documentElement.dataset.theme = dark ? "dark" : "light";
-  document.documentElement.dataset.palette = palette;
+  const root = document.documentElement.dataset;
+  root.theme = dark ? "dark" : "light";
+  root.palette = palette;
+  const a = accentAttr(palette, accent);
+  if (a) root.accent = a;
+  else delete root.accent;
 }
 
 export function onSystemThemeChange(cb: () => void) {
