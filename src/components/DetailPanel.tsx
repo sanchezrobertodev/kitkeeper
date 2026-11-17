@@ -1,5 +1,5 @@
-import { Bot, Copy, Download, ExternalLink, FolderOpen, Hammer, Plug, Power, PowerOff, RotateCcw, ScrollText, SquareTerminal, Trash2, TriangleAlert, X } from "lucide-react";
-import { useState } from "react";
+import { Bot, Copy, Download, ExternalLink, FolderOpen, Hammer, Info, Plug, Power, PowerOff, RotateCcw, ScrollText, SquareTerminal, Trash2, X } from "lucide-react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { api, errorText } from "../api";
 import { type TKey, useT } from "../i18n";
 import { showsChangelog } from "../lib/changelog";
@@ -25,6 +25,30 @@ function Fact({ label, children, mono }: { label: string; children: React.ReactN
       <dt className="text-muted">{label}</dt>
       <dd className={cx("min-w-0 break-words", mono && "font-mono text-xs leading-5")}>{children}</dd>
     </>
+  );
+}
+
+/** About four lines, with Show more when the text runs longer. Keyed by item, so it starts collapsed for each one. */
+function Description({ text }: { text: string }) {
+  const t = useT();
+  const ref = useRef<HTMLParagraphElement>(null);
+  const [open, setOpen] = useState(false);
+  const [long, setLong] = useState(false);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (el && !open) setLong(el.scrollHeight > el.clientHeight + 1);
+  }, [text, open]);
+  return (
+    <div className="mb-5">
+      <p ref={ref} className={cx("text-[13px] leading-relaxed", !open && "line-clamp-4")}>
+        {text}
+      </p>
+      {long && (
+        <Button size="sm" variant="ghost" className="mt-1 -ml-2.5 text-muted" aria-expanded={open} onClick={() => setOpen(!open)}>
+          {open ? t("detail.showLess") : t("detail.showMore")}
+        </Button>
+      )}
+    </div>
   );
 }
 
@@ -96,7 +120,7 @@ export function DetailPanel({ item, overlay }: { item: Item; overlay: boolean })
           {canUpdate(item) && (
             <Button
               size="sm"
-              variant={item.status === "updateAvailable" ? "primary" : "secondary"}
+              variant={item.status === "updateAvailable" ? "update" : "secondary"}
               disabled={running}
               onClick={() => confirm({ type: "update", items: [item] })}
             >
@@ -145,13 +169,16 @@ export function DetailPanel({ item, overlay }: { item: Item; overlay: boolean })
           </p>
         )}
 
-        {item.description && <p className="mb-5 text-[13px] leading-relaxed">{item.description}</p>}
+        {/* For a pending update, what changed comes first. */}
+        {item.status === "updateAvailable" && <ChangelogPanel item={item} />}
+
+        {item.description && <Description key={item.id} text={item.description} />}
 
         {item.notes.length > 0 && (
           <ul className="mb-5 space-y-2">
             {item.notes.map((n) => (
-              <li key={n} className="flex gap-2 rounded-md border border-warn/35 bg-warn/10 px-3 py-2 text-[13px]">
-                <TriangleAlert aria-hidden className="mt-0.5 size-4 shrink-0 text-warn" />
+              <li key={n} className="flex gap-2 rounded-md border border-info/30 bg-info/10 px-3 py-2 text-[13px]">
+                <Info aria-hidden className="mt-0.5 size-4 shrink-0 text-info" />
                 {n}
               </li>
             ))}
@@ -159,8 +186,6 @@ export function DetailPanel({ item, overlay }: { item: Item; overlay: boolean })
         )}
 
         <IssueList item={item} />
-
-        {item.status === "updateAvailable" && <ChangelogPanel item={item} />}
 
         <CostSection item={item} />
         <UsageSection item={item} />

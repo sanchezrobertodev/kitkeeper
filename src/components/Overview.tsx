@@ -107,7 +107,7 @@ export function Overview() {
                 <Download aria-hidden className="size-3.5" />
                 {t("overview.review", { count: pending.length })}
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => browse({ statuses: ["updateAvailable"] })}>
+              <Button size="sm" onClick={() => browse({ statuses: ["updateAvailable"] })}>
                 {t("overview.showInLibrary")}
               </Button>
             </>
@@ -131,7 +131,7 @@ export function Overview() {
         title={t("overview.context")}
         icon={Gauge}
         actions={
-          <Button variant="ghost" size="sm" onClick={byCost}>
+          <Button size="sm" onClick={byCost}>
             {t("overview.sortByCost")}
           </Button>
         }
@@ -230,7 +230,7 @@ export function Overview() {
         icon={CircleAlert}
         actions={
           withIssues.length > 0 && (
-            <Button variant="ghost" size="sm" onClick={() => browse({ flags: ["issues"] })}>
+            <Button size="sm" onClick={() => browse({ flags: ["issues"] })}>
               {t("overview.showInLibrary")}
             </Button>
           )
@@ -265,7 +265,7 @@ export function Overview() {
         title={t("rail.library")}
         icon={LibraryBig}
         actions={
-          <Button variant="ghost" size="sm" onClick={() => browse({})}>
+          <Button size="sm" onClick={() => browse({})}>
             {t("overview.openLibrary")}
           </Button>
         }

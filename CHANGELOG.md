@@ -6,6 +6,24 @@ Each version's section is also its GitHub release notes and the "What's new" tex
 
 ## [Unreleased]
 
+### Changed
+
+- Every update button is orange, including **Update to…** in the details panel, **Update** in the bar for selected items and **Update all** in the review sheet. Orange now only marks updates: **Up to date** chips and skill icons are grey, and notes in the details panel and missing tools in **Settings → About** are blue-grey.
+- When an update is waiting, the details panel shows **What changed** above the description. Long descriptions show four lines, with **Show more** for the rest.
+- Buttons say **Turn on** and **Turn off** everywhere, and the details panel's repo button is called **Open repo**.
+- The Overview tiles' buttons all share one style.
+- On macOS, shortcut hints show ⌘ instead of Ctrl.
+- Dialogs have the same rounded corners as cards.
+
+### Fixed
+
+- Tabbing into the library list now shows its focus ring, and a focused menu item no longer shows a ring and a highlight at once.
+- The search box shows one clear button instead of two.
+- Download buttons and switches line up from row to row.
+- In windows narrower than 1024px, screen readers still hear the check status ("Checking for updates…", "Checked 2m ago").
+- While Kitkeeper scans or checks for updates, the toolbar says **Review updates** (greyed out) instead of **No updates**.
+- Filter counts of 0 are easier to read.
+
 ## [0.6.0] - 2026-11-16
 
 ### Changed
