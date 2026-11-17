@@ -288,6 +288,117 @@
   --scrim: rgb(0 0 0 / 0.75);
 }
 
+/* Accent colours (Settings > Appearance) replace a palette's accent tokens. They come after the palettes so they win at
+   equal specificity. High contrast never gets one (accentAttr in prefs.ts). contrast.mjs checks each on every palette. */
+[data-accent="violet"] {
+  --accent: #6d28d9;
+  --accent-hover: #5b21b6;
+  --accent-fg: #ffffff;
+  --ring: #7c3aed;
+  --nav-active: #ede7fd;
+  --nav-active-fg: #5b21b6;
+  --accent-grad: linear-gradient(135deg, #7c3aed, #6d28d9 45%, #5b21b6);
+  --accent-glow: 0 6px 18px -4px rgb(124 58 237 / 0.45);
+}
+
+[data-accent="violet"][data-theme="dark"] {
+  --accent: #a78bfa;
+  --accent-hover: #c4b5fd;
+  --accent-fg: #140a32;
+  --ring: #c4b5fd;
+  --nav-active: #241d4f;
+  --nav-active-fg: #c4b5fd;
+  --accent-grad: linear-gradient(135deg, #c4b5fd, #a78bfa);
+  --accent-glow: 0 6px 22px -4px rgb(167 139 250 / 0.45);
+}
+
+[data-accent="blue"] {
+  --accent: #1d4ed8;
+  --accent-hover: #1e40af;
+  --accent-fg: #ffffff;
+  --ring: #2563eb;
+  --nav-active: #dbeafe;
+  --nav-active-fg: #1e40af;
+  --accent-grad: linear-gradient(135deg, #2563eb, #1d4ed8 45%, #1e40af);
+  --accent-glow: 0 6px 18px -4px rgb(37 99 235 / 0.45);
+}
+
+[data-accent="blue"][data-theme="dark"] {
+  --accent: #60a5fa;
+  --accent-hover: #93c5fd;
+  --accent-fg: #0a1a3d;
+  --ring: #93c5fd;
+  --nav-active: #172a54;
+  --nav-active-fg: #bfdbfe;
+  --accent-grad: linear-gradient(135deg, #93c5fd, #60a5fa);
+  --accent-glow: 0 6px 22px -4px rgb(96 165 250 / 0.45);
+}
+
+[data-accent="teal"] {
+  --accent: #0f766e;
+  --accent-hover: #115e59;
+  --accent-fg: #ffffff;
+  --ring: #0d9488;
+  --nav-active: #ccfbf1;
+  --nav-active-fg: #115e59;
+  --accent-grad: linear-gradient(135deg, #0f766e, #115e59);
+  --accent-glow: 0 6px 18px -4px rgb(13 148 136 / 0.45);
+}
+
+[data-accent="teal"][data-theme="dark"] {
+  --accent: #2dd4bf;
+  --accent-hover: #5eead4;
+  --accent-fg: #042f2e;
+  --ring: #5eead4;
+  --nav-active: #0f302e;
+  --nav-active-fg: #99f6e4;
+  --accent-grad: linear-gradient(135deg, #5eead4, #2dd4bf);
+  --accent-glow: 0 6px 22px -4px rgb(45 212 191 / 0.4);
+}
+
+[data-accent="green"] {
+  --accent: #137333;
+  --accent-hover: #166534;
+  --accent-fg: #ffffff;
+  --ring: #16a34a;
+  --nav-active: #dcfce7;
+  --nav-active-fg: #166534;
+  --accent-grad: linear-gradient(135deg, #15803d, #137333 45%, #166534);
+  --accent-glow: 0 6px 18px -4px rgb(22 163 74 / 0.4);
+}
+
+[data-accent="green"][data-theme="dark"] {
+  --accent: #4ade80;
+  --accent-hover: #86efac;
+  --accent-fg: #052e16;
+  --ring: #86efac;
+  --nav-active: #10301c;
+  --nav-active-fg: #bbf7d0;
+  --accent-grad: linear-gradient(135deg, #86efac, #4ade80);
+  --accent-glow: 0 6px 22px -4px rgb(74 222 128 / 0.4);
+}
+
+[data-accent="pink"] {
+  --accent: #be185d;
+  --accent-hover: #9d174d;
+  --accent-fg: #ffffff;
+  --ring: #db2777;
+  --nav-active: #fce7f3;
+  --nav-active-fg: #9d174d;
+  --accent-grad: linear-gradient(135deg, #be185d, #9d174d);
+  --accent-glow: 0 6px 18px -4px rgb(219 39 119 / 0.4);
+}
+
+[data-accent="pink"][data-theme="dark"] {
+  --accent: #f472b6;
+  --accent-hover: #f9a8d4;
+  --accent-fg: #3b0820;
+  --ring: #f9a8d4;
+  --nav-active: #3f1530;
+  --nav-active-fg: #fbcfe8;
+  --accent-grad: linear-gradient(135deg, #f9a8d4, #f472b6);
+  --accent-glow: 0 6px 22px -4px rgb(244 114 182 / 0.4);
+}
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);

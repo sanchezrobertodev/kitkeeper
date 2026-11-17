@@ -32,7 +32,9 @@ Five palettes, each with a light and a dark block in `src/index.css` that define
 | Rose | rose | Updates use amber so they stay distinct from the accent |
 | High contrast | dark blue / sky | 7:1 text, hard borders instead of shadows, inverted active rail item |
 
-`node scripts/contrast.mjs` (part of `make check` and CI) checks every text pair of every theme, including chips on their own 12% tints, and `--accent-fg` on every `--accent-grad` stop and halfway between stops.
+**Accent colours.** Settings → Appearance can replace a palette's accent with violet, blue, teal, green or pink. Each is a light and a dark `[data-accent]` block in `src/index.css` that sets `--accent` (+`-hover`, `-fg`), `--ring`, `--nav-active` (+`-fg`), and the Workbench-only `--accent-grad` and `--accent-glow`. High contrast always keeps its own. There is no orange, amber or red accent, because orange means "update" and red means danger.
+
+`node scripts/contrast.mjs` (part of `make check` and CI) checks every text pair of every theme, every accent on every other palette, including chips on their own 12% tints, and `--accent-fg` on every `--accent-grad` stop and halfway between stops.
 
 ## Tokens (`src/index.css`)
 
@@ -75,7 +77,7 @@ Workbench-only style tokens, read by the `[data-palette="workbench"]` rules in `
 
 - Radius: cards 16px (`rounded-2xl`), controls 8px (`rounded-lg`), chips fully rounded.
 - Page gutter 20px. Gaps between cards 12px. Card padding 16px (lists use 16px side padding per row).
-- Rail 80px: icon (20px) above an 11px label. The active item uses the nav-active fill.
+- Rail 80px: icon (20px) above an 11px label. The active item uses the nav-active fill. The bottom group is the app version (click to check for app updates; an accent "Update" when one is found), the mode toggle and Settings.
 
 ## Layout
 
@@ -92,6 +94,7 @@ Workbench-only style tokens, read by the `[data-palette="workbench"]` rules in `
 ```
 
 - Below 1240px wide, the details card overlays the list instead of sitting beside it.
+- Settings: a 176px section nav on the canvas (General, Appearance, Updates, Project folders, About; the current one uses the nav-active fill) beside one section at a time, as a 15px title over one card of rows.
 - Minimum window 960×600.
 
 ## Components

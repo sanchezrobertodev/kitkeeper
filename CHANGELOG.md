@@ -6,8 +6,14 @@ Each version's section is also its GitHub release notes and the "What's new" tex
 
 ## [Unreleased]
 
+### Added
+
+- An accent color in **Settings → Appearance**. Keep your theme's own, or pick violet, blue, teal, green or pink. Updates keep their own color, and High contrast keeps its own colors.
+- The app version at the bottom of the left rail. Click it to check for a new Kitkeeper. When one is found it shows **Update**, which opens what's new.
+
 ### Changed
 
+- Settings is split into sections: General, Appearance, Updates, Project folders and About. **Notify me about new updates** moved to **Updates**.
 - Every update button is orange, including **Update to…** in the details panel, **Update** in the bar for selected items and **Update all** in the review sheet. Orange now only marks updates: **Up to date** chips and skill icons are grey, and notes in the details panel and missing tools in **Settings → About** are blue-grey.
 - When an update is waiting, the details panel shows **What changed** above the description. Long descriptions show four lines, with **Show more** for the rest.
 - Buttons say **Turn on** and **Turn off** everywhere, and the details panel's repo button is called **Open repo**.

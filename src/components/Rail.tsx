@@ -3,6 +3,7 @@ import { type TKey, useT } from "../i18n";
 import { cx } from "../lib/cx";
 import type { Theme } from "../lib/prefs";
 import { type Screen, useStore } from "../store";
+import { AppUpdateRailButton } from "./AppUpdate";
 
 const screens: { id: Screen; label: TKey; icon: typeof LibraryBig }[] = [
   { id: "overview", label: "rail.overview", icon: LayoutDashboard },
@@ -60,6 +61,7 @@ export function Rail() {
         </button>
       ))}
       <div className="mt-auto flex flex-col items-center gap-1.5">
+        <AppUpdateRailButton className={itemCls} />
         <button
           type="button"
           className={cx(itemCls, idleCls)}

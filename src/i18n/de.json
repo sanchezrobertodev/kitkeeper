@@ -16,6 +16,7 @@
   "rail.cleanup": "Aufräumen",
   "rail.mcp": "MCP",
   "rail.settings": "Optionen",
+  "rail.update": "Update",
   "rail.themeToggle": "Modus: {current}. Zu {next} wechseln",
 
   "mode.system": "System",
@@ -27,6 +28,12 @@
   "palette.indigo": "Indigo",
   "palette.rose": "Rosé",
   "palette.contrast": "Hoher Kontrast",
+  "accent.theme": "Design",
+  "accent.violet": "Violett",
+  "accent.blue": "Blau",
+  "accent.teal": "Petrol",
+  "accent.green": "Grün",
+  "accent.pink": "Pink",
 
   "kind.plugin": "Plugin",
   "kind.skill": "Skill",
@@ -83,6 +90,7 @@
   "risk.toolsRemoved": "Entfernt {tools}.",
 
   "settings.title": "Optionen",
+  "settings.sections": "Bereiche der Optionen",
   "settings.saveFailed": "Die Einstellung konnte nicht gespeichert werden: {error}",
   "settings.general": "Allgemein",
   "settings.language": "Sprache",
@@ -101,6 +109,9 @@
   "settings.appearance": "Darstellung",
   "settings.mode": "Modus",
   "settings.theme": "Design",
+  "settings.accent": "Akzentfarbe",
+  "settings.accentHelp": "Für Links, Schalter, die Auswahl und Hauptschaltflächen. Updates behalten ihre eigene Farbe.",
+  "settings.accentLocked": "Hoher Kontrast verwendet immer seine eigenen Farben.",
   "settings.updates": "Updates",
   "settings.checkEvery": "Plugins und Skills auf Updates prüfen",
   "settings.checkDaily": "Täglich",

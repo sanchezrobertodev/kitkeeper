@@ -1,7 +1,9 @@
 import { CircleAlert, CircleArrowUp, CircleCheck, LoaderCircle, RefreshCw, X } from "lucide-react";
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect, useState } from "react";
+import { api } from "../api";
 import { useAppUpdate } from "../appUpdate";
 import { locale, t, tx, useT } from "../i18n";
+import { cx } from "../lib/cx";
 import type { CloneStatus, DownloadProgress } from "../types";
 import { Markdown } from "./Markdown";
 import { Button, IconButton, Modal } from "./ui";
@@ -205,6 +207,56 @@ export function ReleaseNotesDialog() {
     >
       {update.notes ? <ReleaseNotes notes={update.notes} /> : <p className="text-[13px] text-muted">{t("appUpdate.noNotes")}</p>}
     </Modal>
+  );
+}
+
+/** Bottom of the rail: the app version, which checks for app updates, or "Update" (opens the notes) when one is found. */
+export function AppUpdateRailButton({ className }: { className: string }) {
+  const t = useT();
+  const { phase, update, clone, progress, error, installFailed, check, install, setNotesOpen } = useAppUpdate();
+  const [version, setVersion] = useState<string>();
+  useEffect(() => void api.environment().then((e) => setVersion(e.version), () => {}), []);
+
+  const found = phase === "available" && (clone ? clone.behind > 0 : !!update);
+  const pct = percent(progress);
+  let Icon = RefreshCw;
+  let status = t("appUpdate.check");
+  if (phase === "checking") status = t("appUpdate.checking");
+  else if (phase === "upToDate") {
+    Icon = CircleCheck;
+    status = `${clone ? t("appUpdate.upToDateWith", { branch: clone.defaultBranch }) : t("appUpdate.latest")} ${t("appUpdate.check")}`;
+  } else if (found) {
+    Icon = CircleArrowUp;
+    status = clone
+      ? t("appUpdate.behindOn", { commits: commits(clone.behind), branch: clone.defaultBranch })
+      : t("appUpdate.versionAvailable", { version: update?.version ?? "" });
+  } else if (phase === "installing") {
+    Icon = LoaderCircle;
+    status = clone ? t("appUpdate.updating") : progressText(progress);
+  } else if (phase === "error") {
+    Icon = CircleAlert;
+    status = t(installFailed ? "appUpdate.installError" : "appUpdate.checkError", { error: error ?? "" });
+  }
+  const label = found ? t("rail.update") : phase === "installing" && !clone && pct !== null ? `${pct}%` : version && /^\d/.test(version) ? `v${version}` : (version ?? "…");
+
+  return (
+    <button
+      type="button"
+      title={status}
+      // check() and install() ignore clicks while one runs; disabling would drop keyboard focus.
+      onClick={() => (found ? setNotesOpen(true) : phase === "error" && installFailed ? void install() : void check())}
+      className={cx(className, "hover:bg-surface-hover", found ? "text-accent" : "text-muted hover:text-fg")}
+    >
+      <Icon
+        aria-hidden
+        className={cx(
+          "size-5",
+          (phase === "checking" || phase === "installing") && "animate-spin motion-reduce:animate-none",
+          phase === "error" && "text-danger",
+        )}
+      />
+      {label}
+    </button>
   );
 }
 

@@ -16,6 +16,7 @@
   "rail.cleanup": "整理",
   "rail.mcp": "MCP",
   "rail.settings": "設定",
+  "rail.update": "更新",
   "rail.themeToggle": "モード：{current}。{next} に切り替え",
 
   "mode.system": "システム",
@@ -27,6 +28,12 @@
   "palette.indigo": "インディゴ",
   "palette.rose": "ローズ",
   "palette.contrast": "ハイコントラスト",
+  "accent.theme": "テーマ",
+  "accent.violet": "バイオレット",
+  "accent.blue": "ブルー",
+  "accent.teal": "ティール",
+  "accent.green": "グリーン",
+  "accent.pink": "ピンク",
 
   "kind.plugin": "プラグイン",
   "kind.skill": "スキル",
@@ -83,6 +90,7 @@
   "risk.toolsRemoved": "{tools} を削除します。",
 
   "settings.title": "設定",
+  "settings.sections": "設定のセクション",
   "settings.saveFailed": "設定を保存できませんでした：{error}",
   "settings.general": "一般",
   "settings.language": "言語",
@@ -101,6 +109,9 @@
   "settings.appearance": "外観",
   "settings.mode": "モード",
   "settings.theme": "テーマ",
+  "settings.accent": "アクセントカラー",
+  "settings.accentHelp": "リンク、スイッチ、選択中の項目、メインのボタンに使います。更新はそれ専用の色のままです。",
+  "settings.accentLocked": "ハイコントラストでは常に専用の色を使います。",
   "settings.updates": "更新",
   "settings.checkEvery": "プラグインとスキルの更新を確認する",
   "settings.checkDaily": "毎日",

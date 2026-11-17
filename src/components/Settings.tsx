@@ -2,6 +2,7 @@ import {
   Check,
   ExternalLink,
   FolderPlus,
+  Folders,
   Info,
   Monitor,
   Moon,
@@ -15,8 +16,8 @@ import { type ReactNode, useEffect, useId, useState } from "react";
 import { api, errorText, type ProjectPage } from "../api";
 import { type LanguagePref, languages, resolveLanguage, type TKey, tx, useT } from "../i18n";
 import { cx } from "../lib/cx";
-import { type Palette, palettes, type Theme } from "../lib/prefs";
-import { useStore } from "../store";
+import { accentAttr, accents, type Palette, palettes, type Theme } from "../lib/prefs";
+import { type SettingsSection, useStore } from "../store";
 import type { Environment, Settings as SettingsData } from "../types";
 import { AppUpdateSettings } from "./AppUpdate";
 import { Button, card, IconButton, Switch } from "./ui";
@@ -24,15 +25,23 @@ import { Button, card, IconButton, Switch } from "./ui";
 const selectCls =
   "h-8 min-w-48 rounded-lg border border-border-strong bg-surface px-2 text-[13px] text-fg hover:bg-surface-hover";
 
-function Section({ title, icon: Icon, children }: { title: string; icon: typeof Info; children: ReactNode }) {
+const sections: { id: SettingsSection; label: TKey; icon: typeof Info }[] = [
+  { id: "general", label: "settings.general", icon: SlidersHorizontal },
+  { id: "appearance", label: "settings.appearance", icon: PaletteIcon },
+  { id: "updates", label: "settings.updates", icon: RefreshCw },
+  { id: "projects", label: "settings.projects", icon: Folders },
+  { id: "about", label: "settings.about", icon: Info },
+];
+
+/** The shown section: its title above one card of rows. */
+function Panel({ title, children }: { title: string; children: ReactNode }) {
   const id = useId();
   return (
-    <section aria-labelledby={id} className={cx(card, "px-5 py-4")}>
-      <h2 id={id} className="mb-1 flex items-center gap-2 text-[11px] font-semibold tracking-wider text-muted uppercase">
-        <Icon aria-hidden className="size-4" />
+    <section aria-labelledby={id}>
+      <h2 id={id} className="mb-3 text-[15px] font-semibold tracking-tight">
         {title}
       </h2>
-      <div className="divide-y divide-border">{children}</div>
+      <div className={cx(card, "divide-y divide-border px-5 py-1")}>{children}</div>
     </section>
   );
 }
@@ -88,6 +97,7 @@ function ModePicker() {
 function PalettePicker() {
   const t = useT();
   const palette = useStore((s) => s.palette);
+  const accent = useStore((s) => s.accent);
   const setPalette = useStore((s) => s.setPalette);
   const dark = document.documentElement.dataset.theme === "dark";
   useStore((s) => s.theme);
@@ -98,6 +108,7 @@ function PalettePicker() {
           <input type="radio" name="palette" className="peer sr-only" checked={palette === p} onChange={() => setPalette(p)} />
           <div
             data-palette={p}
+            data-accent={accentAttr(p, accent)}
             data-theme={dark ? "dark" : "light"}
             className={cx(
               "rounded-lg border-2 bg-bg p-2 transition-colors duration-150 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring",
@@ -126,6 +137,52 @@ function PalettePicker() {
   );
 }
 
+/** Accent swatches. Each one carries its own data attributes, so it shows that accent in the current mode. */
+function AccentPicker() {
+  const t = useT();
+  const palette = useStore((s) => s.palette);
+  const accent = useStore((s) => s.accent);
+  const setAccent = useStore((s) => s.setAccent);
+  const mode = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+  useStore((s) => s.theme);
+  const locked = palette === "contrast";
+  return (
+    <div role="radiogroup" aria-label={t("settings.accent")} className="flex flex-wrap gap-x-3 gap-y-2 pt-3 pb-1">
+      {accents.map((a) => {
+        const on = locked ? a === "theme" : accent === a;
+        return (
+          <label
+            key={a}
+            className={cx("group flex w-16 flex-col items-center gap-1.5 text-xs", locked ? "opacity-50" : "cursor-pointer")}
+          >
+            <input
+              type="radio"
+              name="accent"
+              className="peer sr-only"
+              checked={on}
+              disabled={locked}
+              onChange={() => setAccent(a)}
+            />
+            <span
+              aria-hidden
+              data-palette={a === "theme" ? palette : undefined}
+              data-accent={a === "theme" ? undefined : a}
+              data-theme={mode}
+              className={cx(
+                "grid size-8 place-items-center rounded-full bg-accent text-accent-fg outline-2 outline-offset-2 transition-colors duration-150 peer-focus-visible:outline-ring",
+                on ? "outline-fg" : cx("outline-transparent", !locked && "group-hover:outline-border-strong"),
+              )}
+            >
+              {on && <Check className="size-4" />}
+            </span>
+            <span className={on ? "font-medium" : "text-muted"}>{t(`accent.${a}`)}</span>
+          </label>
+        );
+      })}
+    </div>
+  );
+}
+
 function LinkButton({ page, label }: { page: ProjectPage; label: string }) {
   return (
     <Button size="sm" variant="ghost" onClick={() => void api.openProjectPage(page)}>
@@ -141,6 +198,9 @@ export function Settings() {
   const save = useStore((s) => s.saveSettings);
   const language = useStore((s) => s.language);
   const setLanguage = useStore((s) => s.setLanguage);
+  const palette = useStore((s) => s.palette);
+  const section = useStore((s) => s.settingsSection);
+  const setSection = useStore((s) => s.setSettingsSection);
   const [env, setEnv] = useState<Environment | null>(null);
   const [error, setError] = useState<string | null>(null);
   const ids = { language: useId(), close: useId(), check: useId() };
@@ -176,160 +236,177 @@ export function Settings() {
   ];
   const tray = env?.tray ?? true;
 
+  const panels: Record<SettingsSection, ReactNode> = {
+    general: (
+      <>
+        <Row
+          label={t("settings.language")}
+          htmlFor={ids.language}
+          help={tx("settings.languageHelp", {
+            link: (
+              <button type="button" className="text-accent underline-offset-2 hover:underline" onClick={() => void api.openProjectPage("translate")}>
+                {t("settings.languageHelpLink")}
+              </button>
+            ),
+          })}
+        >
+          <select id={ids.language} className={selectCls} value={language} onChange={(e) => setLanguage(e.target.value as LanguagePref)}>
+            <option value="system">{t("settings.languageSystem", { language: languages[resolveLanguage("system")] })}</option>
+            {Object.entries(languages).map(([code, name]) => (
+              <option key={code} value={code} lang={code}>
+                {name}
+              </option>
+            ))}
+          </select>
+        </Row>
+        <Row label={t("settings.close")} htmlFor={ids.close} help={tray ? t("settings.closeHelp") : t("settings.noTray")}>
+          <select
+            id={ids.close}
+            className={selectCls}
+            disabled={!tray}
+            value={settings.closeToTray && tray ? "tray" : "quit"}
+            onChange={(e) => change({ closeToTray: e.target.value === "tray" })}
+          >
+            <option value="tray">{t("settings.closeTray")}</option>
+            <option value="quit">{t("settings.closeQuit")}</option>
+          </select>
+        </Row>
+        <Row label={t("settings.autostart")} help={t("settings.autostartHelp")}>
+          <Switch label={t("settings.autostart")} checked={!!env?.autostart} disabled={!env || !tray} onChange={() => setAutostart(!env?.autostart)} />
+        </Row>
+      </>
+    ),
+    appearance: (
+      <>
+        <Row label={t("settings.mode")}>
+          <ModePicker />
+        </Row>
+        <div className="py-3">
+          <p className="text-[13px] font-medium">{t("settings.theme")}</p>
+          <PalettePicker />
+        </div>
+        <div className="py-3">
+          <p className="text-[13px] font-medium">{t("settings.accent")}</p>
+          <p className="mt-0.5 text-xs text-muted">{t(palette === "contrast" ? "settings.accentLocked" : "settings.accentHelp")}</p>
+          <AccentPicker />
+        </div>
+      </>
+    ),
+    updates: (
+      <>
+        <Row label={t("settings.checkEvery")} htmlFor={ids.check} help={t("settings.checkHelp")}>
+          <select
+            id={ids.check}
+            className={selectCls}
+            value={frequency}
+            onChange={(e) => {
+              const v = e.target.value;
+              change(v === "never" ? { autoCheck: false } : { autoCheck: true, checkInterval: v as SettingsData["checkInterval"] });
+            }}
+          >
+            <option value="daily">{t("settings.checkDaily")}</option>
+            <option value="weekly">{t("settings.checkWeekly")}</option>
+            <option value="never">{t("settings.checkNever")}</option>
+          </select>
+        </Row>
+        <Row label={t("settings.notifications")} help={t("settings.notificationsHelp")}>
+          <Switch
+            label={t("settings.notifications")}
+            checked={settings.notifications}
+            onChange={() => change({ notifications: !settings.notifications })}
+          />
+        </Row>
+        <div className="py-3 [&>section]:mb-0">
+          <AppUpdateSettings version={env?.version} />
+        </div>
+      </>
+    ),
+    projects: (
+      <div className="py-3">
+        <p className="mb-3 text-xs text-muted">{t("settings.projectsHelp")}</p>
+        {settings.projects.length > 0 ? (
+          <ul className="mb-3 divide-y divide-border rounded-md border border-border">
+            {settings.projects.map((p) => (
+              <li key={p} className="flex items-center gap-2 py-1 pr-1 pl-3">
+                <code className="min-w-0 flex-1 truncate font-mono text-xs" title={p}>
+                  {p}
+                </code>
+                <IconButton
+                  label={t("common.remove", { name: p })}
+                  className="size-8"
+                  onClick={() => change({ projects: settings.projects.filter((x) => x !== p) })}
+                >
+                  <X className="size-4" />
+                </IconButton>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mb-3 text-xs text-muted italic">{t("settings.noProjects")}</p>
+        )}
+        <Button size="sm" onClick={() => void addProject()}>
+          <FolderPlus aria-hidden className="size-4" />
+          {t("settings.addFolder")}
+        </Button>
+      </div>
+    ),
+    about: (
+      <div className="py-3">
+        <p className="mb-3 text-[13px] font-medium">{t("settings.version", { version: env?.version ?? "…", os: env?.os ?? "…" })}</p>
+        <dl className="grid grid-cols-[110px_1fr] gap-x-3 gap-y-1.5 text-xs">
+          <dt className="text-muted">{t("settings.claudeDir")}</dt>
+          <dd className="font-mono break-all">{env?.claudeDir ?? "…"}</dd>
+          {tools.map(([name, path, why]) => (
+            <div key={name} className="contents">
+              <dt className="font-mono text-muted">{name}</dt>
+              <dd className="min-w-0">
+                {path ? <span className="font-mono break-all">{path}</span> : <span className="text-info">{t("settings.notFound", { why: t(why) })}</span>}
+              </dd>
+            </div>
+          ))}
+        </dl>
+        <div className="mt-3 -ml-2.5 flex flex-wrap gap-1">
+          <LinkButton page="repo" label={t("settings.source")} />
+          <LinkButton page="issues" label={t("settings.reportProblem")} />
+          <LinkButton page="changelog" label={t("settings.changelog")} />
+          <LinkButton page="license" label={t("settings.license")} />
+        </div>
+      </div>
+    ),
+  };
+  const shown = sections.find((s) => s.id === section) ?? sections[0];
+
   return (
     <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-6">
-      <div className="mx-auto flex max-w-3xl flex-col gap-4">
-        {error && (
-          <p role="alert" className="rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-[13px] text-danger">
-            {error}
-          </p>
-        )}
-
-        <Section title={t("settings.general")} icon={SlidersHorizontal}>
-          <Row
-            label={t("settings.language")}
-            htmlFor={ids.language}
-            help={tx("settings.languageHelp", {
-              link: (
-                <button type="button" className="text-accent underline-offset-2 hover:underline" onClick={() => void api.openProjectPage("translate")}>
-                  {t("settings.languageHelpLink")}
+      <div className="mx-auto flex max-w-4xl items-start gap-6">
+        <nav aria-label={t("settings.sections")} className="sticky top-0 w-44 shrink-0">
+          <ul className="flex flex-col gap-0.5">
+            {sections.map(({ id, label, icon: Icon }) => (
+              <li key={id}>
+                <button
+                  type="button"
+                  aria-current={id === shown.id ? "page" : undefined}
+                  onClick={() => setSection(id)}
+                  className={cx(
+                    "flex h-9 w-full items-center gap-2.5 rounded-lg px-3 text-left text-[13px] transition-colors duration-150",
+                    id === shown.id ? "bg-nav-active font-medium text-nav-active-fg" : "text-muted hover:bg-surface-hover hover:text-fg",
+                  )}
+                >
+                  <Icon aria-hidden className="size-4 shrink-0" />
+                  <span className="truncate">{t(label)}</span>
                 </button>
-              ),
-            })}
-          >
-            <select
-              id={ids.language}
-              className={selectCls}
-              value={language}
-              onChange={(e) => setLanguage(e.target.value as LanguagePref)}
-            >
-              <option value="system">{t("settings.languageSystem", { language: languages[resolveLanguage("system")] })}</option>
-              {Object.entries(languages).map(([code, name]) => (
-                <option key={code} value={code} lang={code}>
-                  {name}
-                </option>
-              ))}
-            </select>
-          </Row>
-          <Row label={t("settings.close")} htmlFor={ids.close} help={tray ? t("settings.closeHelp") : t("settings.noTray")}>
-            <select
-              id={ids.close}
-              className={selectCls}
-              disabled={!tray}
-              value={settings.closeToTray && tray ? "tray" : "quit"}
-              onChange={(e) => change({ closeToTray: e.target.value === "tray" })}
-            >
-              <option value="tray">{t("settings.closeTray")}</option>
-              <option value="quit">{t("settings.closeQuit")}</option>
-            </select>
-          </Row>
-          <Row label={t("settings.autostart")} help={t("settings.autostartHelp")}>
-            <Switch
-              label={t("settings.autostart")}
-              checked={!!env?.autostart}
-              disabled={!env || !tray}
-              onChange={() => setAutostart(!env?.autostart)}
-            />
-          </Row>
-          <Row label={t("settings.notifications")} help={t("settings.notificationsHelp")}>
-            <Switch
-              label={t("settings.notifications")}
-              checked={settings.notifications}
-              onChange={() => change({ notifications: !settings.notifications })}
-            />
-          </Row>
-        </Section>
-
-        <Section title={t("settings.appearance")} icon={PaletteIcon}>
-          <Row label={t("settings.mode")}>
-            <ModePicker />
-          </Row>
-          <div className="py-3">
-            <p className="text-[13px] font-medium">{t("settings.theme")}</p>
-            <PalettePicker />
-          </div>
-        </Section>
-
-        <Section title={t("settings.updates")} icon={RefreshCw}>
-          <Row label={t("settings.checkEvery")} htmlFor={ids.check} help={t("settings.checkHelp")}>
-            <select
-              id={ids.check}
-              className={selectCls}
-              value={frequency}
-              onChange={(e) => {
-                const v = e.target.value;
-                change(v === "never" ? { autoCheck: false } : { autoCheck: true, checkInterval: v as SettingsData["checkInterval"] });
-              }}
-            >
-              <option value="daily">{t("settings.checkDaily")}</option>
-              <option value="weekly">{t("settings.checkWeekly")}</option>
-              <option value="never">{t("settings.checkNever")}</option>
-            </select>
-          </Row>
-          <div className="pt-3 [&>section]:mb-1">
-            <AppUpdateSettings version={env?.version} />
-          </div>
-        </Section>
-
-        <Section title={t("settings.projects")} icon={FolderPlus}>
-          <div className="py-3">
-            <p className="mb-3 text-xs text-muted">{t("settings.projectsHelp")}</p>
-            {settings.projects.length > 0 ? (
-              <ul className="mb-3 divide-y divide-border rounded-md border border-border">
-                {settings.projects.map((p) => (
-                  <li key={p} className="flex items-center gap-2 py-1 pr-1 pl-3">
-                    <code className="min-w-0 flex-1 truncate font-mono text-xs" title={p}>
-                      {p}
-                    </code>
-                    <IconButton
-                      label={t("common.remove", { name: p })}
-                      className="size-8"
-                      onClick={() => change({ projects: settings.projects.filter((x) => x !== p) })}
-                    >
-                      <X className="size-4" />
-                    </IconButton>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="mb-3 text-xs text-muted italic">{t("settings.noProjects")}</p>
-            )}
-            <Button size="sm" onClick={() => void addProject()}>
-              <FolderPlus aria-hidden className="size-4" />
-              {t("settings.addFolder")}
-            </Button>
-          </div>
-        </Section>
-
-        <Section title={t("settings.about")} icon={Info}>
-          <div className="py-3">
-            <p className="mb-3 text-[13px] font-medium">
-              {t("settings.version", { version: env?.version ?? "…", os: env?.os ?? "…" })}
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <div className="flex min-w-0 flex-1 flex-col gap-4">
+          {error && (
+            <p role="alert" className="rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-[13px] text-danger">
+              {error}
             </p>
-            <dl className="grid grid-cols-[110px_1fr] gap-x-3 gap-y-1.5 text-xs">
-              <dt className="text-muted">{t("settings.claudeDir")}</dt>
-              <dd className="font-mono break-all">{env?.claudeDir ?? "…"}</dd>
-              {tools.map(([name, path, why]) => (
-                <div key={name} className="contents">
-                  <dt className="font-mono text-muted">{name}</dt>
-                  <dd className="min-w-0">
-                    {path ? (
-                      <span className="font-mono break-all">{path}</span>
-                    ) : (
-                      <span className="text-info">{t("settings.notFound", { why: t(why) })}</span>
-                    )}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-            <div className="mt-3 -ml-2.5 flex flex-wrap gap-1">
-              <LinkButton page="repo" label={t("settings.source")} />
-              <LinkButton page="issues" label={t("settings.reportProblem")} />
-              <LinkButton page="changelog" label={t("settings.changelog")} />
-              <LinkButton page="license" label={t("settings.license")} />
-            </div>
-          </div>
-        </Section>
+          )}
+          <Panel title={t(shown.label)}>{panels[shown.id]}</Panel>
+        </div>
       </div>
     </div>
   );
