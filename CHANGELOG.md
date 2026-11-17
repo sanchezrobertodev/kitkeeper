@@ -36,6 +36,7 @@ Each version's section is also its GitHub release notes and the "What's new" tex
 - In windows narrower than 1024px, screen readers still hear the check status ("Checking for updates…", "Checked 2m ago").
 - While Kitkeeper scans or checks for updates, the toolbar says **Review updates** (greyed out) instead of **No updates**.
 - Filter counts of 0 are easier to read.
+- While Kitkeeper counts uses, it shows how far along it is as a percentage. Before, it showed a byte count and called it transcripts.
 
 ## [0.6.0] - 2026-11-16
 

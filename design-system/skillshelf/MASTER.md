@@ -103,7 +103,7 @@ Workbench-only style tokens, read by the `[data-palette="workbench"]` rules in `
 
 - **Buttons:** `primary` (accent; the violet-to-teal gradient on Workbench), `update` (orange, for update actions only), `secondary` (white with an outline), `ghost`, `danger` (outline). Heights 36 and 32.
 - **Status chip:** icon + label, tinted background, 1px tinted border.
-- **Charts:** inline SVG sparklines and bars in `--accent`. Each has a text alternative such as "41 uses in the last 30 days". Ranked bars (`RankedBars` in `Overview.tsx`): one series, so no legend; largest first; 10px bars, square at the baseline and 4px-rounded at the tip; the value at the tip in muted text, never the accent; hover or focus shows a small card with the value first and the detail after, which is also the row's description. A row opens its item.
+- **Charts:** inline SVG sparklines and bars in `--accent`. Each has a text alternative such as "41 uses in the last 30 days". Ranked bars (`RankedBars` in `Overview.tsx`): one series, so no legend; largest first; 10px bars, square at the baseline and 4px-rounded at the tip; the value at the tip in muted text, never the accent; hover or focus shows a small card with the value first and the detail after, which is also the row's description. A name that appears twice in one chart (a plugin and a skill) gets its type after it in muted text. A row opens its item.
 - **Dialogs:** a card on a tinted scrim. Focus is trapped and returns to where it was. Escape closes.
 
 ## Motion

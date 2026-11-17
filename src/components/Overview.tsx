@@ -14,10 +14,11 @@ import {
 import { useId, type ReactNode } from "react";
 import { locale, useT } from "../i18n";
 import { cx } from "../lib/cx";
-import { issueText, relativeTime } from "../lib/format";
+import { issueText, kindLabel, relativeTime } from "../lib/format";
 import { isUnused, loadsEverywhere, sessionTokens, shortCount } from "../lib/insights";
 import type { SortKey } from "../lib/prefs";
 import { updatable, useStore } from "../store";
+import type { Kind } from "../types";
 import { Button, card } from "./ui";
 import { mcpMeta } from "./McpServers";
 import { Sparkline } from "./Sparkline";
@@ -64,6 +65,7 @@ function Big({ value, label, tone }: { value: ReactNode; label: string; tone?: s
 interface Bar {
   id: string;
   name: string;
+  kind: Kind;
   value: number;
   /** The value as shown at the bar's tip. */
   text: string;
@@ -76,6 +78,7 @@ function RankedBars({ label, rows }: { label: string; rows: Bar[] }) {
   const reveal = useStore((s) => s.reveal);
   const id = useId();
   const max = Math.max(1, ...rows.map((r) => r.value));
+  const names = rows.map((r) => r.name);
   return (
     <ol aria-label={label} className="mt-4 space-y-0.5">
       {rows.map((r, i) => (
@@ -86,7 +89,11 @@ function RankedBars({ label, rows }: { label: string; rows: Bar[] }) {
             aria-describedby={`${id}-${i}`}
             className="group relative grid w-full grid-cols-[minmax(0,2fr)_minmax(0,3fr)] items-center gap-3 rounded-md px-1.5 py-1 text-left text-xs transition-colors duration-100 hover:bg-surface-hover focus-visible:bg-surface-hover"
           >
-            <span className="truncate">{r.name}</span>
+            <span className="truncate">
+              {r.name}
+              {/* A plugin and a skill can share a name. */}
+              {names.indexOf(r.name) !== names.lastIndexOf(r.name) && <span className="text-muted"> · {kindLabel[r.kind]}</span>}
+            </span>
             <span className="flex min-w-0 items-center gap-2">
               {/* Leaves 56px for the value, so the longest bar's label still fits. */}
               <span
@@ -226,6 +233,7 @@ export function Overview() {
             rows={heavy.map((i) => ({
               id: i.id,
               name: i.name,
+              kind: i.kind,
               value: i.cost?.total ?? 0,
               text: `≈${shortCount(i.cost?.total ?? 0)}`,
               detail: t("overview.share", { percent: Math.round(((i.cost?.total ?? 0) / Math.max(1, tokens)) * 100) }),
@@ -258,6 +266,7 @@ export function Overview() {
                 rows={used.map((i) => ({
                   id: i.id,
                   name: i.name,
+                  kind: i.kind,
                   value: usage[i.id].uses,
                   text: String(usage[i.id].uses),
                   detail: t("detail.lastUsed", { time: relativeTime(usage[i.id].lastUsed) }),
@@ -268,7 +277,7 @@ export function Overview() {
         ) : (
           <p className="flex items-center gap-1.5 text-[13px] text-muted">
             <LoaderCircle aria-hidden className="size-4 animate-spin" />
-            {progress?.total ? t("cleanup.countingProgress", { read: progress.read, total: progress.total }) : t("cleanup.counting")}
+            {progress?.total ? t("cleanup.countingProgress", { percent: Math.floor((progress.read / progress.total) * 100) }) : t("cleanup.counting")}
           </p>
         )}
       </Tile>
@@ -292,7 +301,7 @@ export function Overview() {
         ) : (
           <p className="flex items-center gap-1.5 text-[13px] text-muted">
             <LoaderCircle aria-hidden className="size-4 animate-spin" />
-            {progress?.total ? t("cleanup.countingProgress", { read: progress.read, total: progress.total }) : t("cleanup.counting")}
+            {progress?.total ? t("cleanup.countingProgress", { percent: Math.floor((progress.read / progress.total) * 100) }) : t("cleanup.counting")}
           </p>
         )}
       </Tile>
