@@ -10,6 +10,8 @@ export type Palette = (typeof palettes)[number];
 /** Accent colours in index.css that replace a palette's own accent; "theme" keeps it. */
 export const accents = ["theme", "violet", "blue", "teal", "green", "pink"] as const;
 export type Accent = (typeof accents)[number];
+/** The accent a palette already has, left out of its picker. Workbench differs from Violet only in the button gradient. */
+export const ownAccent: Partial<Record<Palette, Accent>> = { workbench: "violet" };
 export type SortKey = "name" | "kind" | "source" | "version" | "status" | "updated" | "installed" | "cost" | "uses" | "lastUsed";
 /** Library columns you can show or hide (Columns menu); Name and Status always show. */
 export const listColumns = ["type", "source", "version", "cost", "uses", "lastUsed", "updated", "installed"] as const;
@@ -71,9 +73,9 @@ export function savePrefs(p: Prefs) {
 
 const media = typeof window !== "undefined" ? window.matchMedia("(prefers-color-scheme: dark)") : null;
 
-/** The `data-accent` for a palette, or undefined to keep its own accent. High contrast always keeps its own. */
+/** The `data-accent` for a palette, or undefined to keep its own accent: High contrast always, and the accent it already has. */
 export const accentAttr = (palette: Palette, accent: Accent) =>
-  palette === "contrast" || accent === "theme" ? undefined : accent;
+  palette === "contrast" || accent === "theme" || accent === ownAccent[palette] ? undefined : accent;
 
 export function applyTheme(theme: Theme, palette: Palette, accent: Accent) {
   const dark = theme === "dark" || (theme === "system" && !!media?.matches);

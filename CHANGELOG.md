@@ -8,7 +8,7 @@ Each version's section is also its GitHub release notes and the "What's new" tex
 
 ### Added
 
-- An accent color in **Settings → Appearance**. Keep your theme's own, or pick violet, blue, teal, green or pink. Updates keep their own color, and High contrast keeps its own colors.
+- An accent color in **Settings → Appearance**. Keep your theme's own, or pick violet (except on Workbench, which is already violet), blue, teal, green or pink. Updates keep their own color, and High contrast keeps its own colors.
 - The app version at the bottom of the left rail. Click it to check for a new Kitkeeper. When one is found it shows **Update**, which opens what's new.
 - New Library columns: **Type**, **Last used** and **Installed**. **Uses** now shows a 30-day graph beside the count.
 - A **Columns** button at the right end of the Library header picks which columns show. A picked column that doesn't fit the window is marked **No room**.

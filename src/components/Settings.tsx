@@ -16,7 +16,7 @@ import { type ReactNode, useEffect, useId, useState } from "react";
 import { api, errorText, type ProjectPage } from "../api";
 import { type LanguagePref, languages, resolveLanguage, type TKey, tx, useT } from "../i18n";
 import { cx } from "../lib/cx";
-import { accentAttr, accents, type Palette, palettes, type Theme } from "../lib/prefs";
+import { accentAttr, accents, ownAccent, type Palette, palettes, type Theme } from "../lib/prefs";
 import { type SettingsSection, useStore } from "../store";
 import type { Environment, Settings as SettingsData } from "../types";
 import { AppUpdateSettings } from "./AppUpdate";
@@ -146,10 +146,12 @@ function AccentPicker() {
   const mode = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
   useStore((s) => s.theme);
   const locked = palette === "contrast";
+  const same = ownAccent[palette];
   return (
     <div role="radiogroup" aria-label={t("settings.accent")} className="flex flex-wrap gap-x-3 gap-y-2 pt-3 pb-1">
-      {accents.map((a) => {
-        const on = locked ? a === "theme" : accent === a;
+      {accents.filter((a) => a !== same).map((a) => {
+        // A saved accent that matches this palette's own shows as Theme.
+        const on = locked ? a === "theme" : accent === a || (a === "theme" && accent === same);
         return (
           <label
             key={a}
