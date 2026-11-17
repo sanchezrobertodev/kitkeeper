@@ -89,7 +89,7 @@ Sometimes a marketplace declares its own install command for an update. When tha
 
 ## Install
 
-Download the installer for your OS from [Releases](https://github.com/sanchezrobertodev/skillshelf/releases):
+Download the installer for your OS from [Releases](https://github.com/sanchezrobertodev/kitkeeper/releases):
 
 | OS | File |
 |---|---|

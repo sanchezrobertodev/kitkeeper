@@ -17,7 +17,7 @@ Each version's section is also its GitHub release notes and the "What's new" tex
 
 ### Notes
 
-- 0.5.0 was not released on its own, so this update also brings its changes: Brazilian Portuguese, German, French and Japanese, a bluer Indigo theme, 15 fixes and two security fixes. They're listed under [0.5.0 in the changelog](https://github.com/sanchezrobertodev/skillshelf/blob/master/CHANGELOG.md#050---2026-11-02).
+- 0.5.0 was not released on its own, so this update also brings its changes: Brazilian Portuguese, German, French and Japanese, a bluer Indigo theme, 15 fixes and two security fixes. They're listed under [0.5.0 in the changelog](https://github.com/sanchezrobertodev/kitkeeper/blob/master/CHANGELOG.md#050---2026-11-02).
 - If you run Skillshelf 0.4.0 or earlier from a git clone on Windows, this update still runs the old updater and can fail. If it does, quit Skillshelf, run `git pull --ff-only`, `npm ci` and `npm run tauri build -- --no-bundle` in the clone, then start `src-tauri/target/release/skillshelf.exe`.
 
 ## [0.5.0] - 2026-11-02
@@ -137,10 +137,10 @@ First release of Skillshelf, a desktop app for the skills and plugins you've ins
 - Filter, sort and search by type, status, source, marketplace/repo and on/off state.
 - Enable/disable plugins, uninstall items (always with a confirmation), and open an item's folder or source repo.
 
-[Unreleased]: https://github.com/sanchezrobertodev/skillshelf/compare/v0.6.0...HEAD
-[0.6.0]: https://github.com/sanchezrobertodev/skillshelf/compare/v0.5.0...v0.6.0
-[0.5.0]: https://github.com/sanchezrobertodev/skillshelf/compare/v0.4.0...v0.5.0
-[0.4.0]: https://github.com/sanchezrobertodev/skillshelf/compare/v0.3.0...v0.4.0
-[0.3.0]: https://github.com/sanchezrobertodev/skillshelf/compare/v0.2.0...v0.3.0
-[0.2.0]: https://github.com/sanchezrobertodev/skillshelf/compare/v0.1.0...v0.2.0
-[0.1.0]: https://github.com/sanchezrobertodev/skillshelf/releases/tag/v0.1.0
+[Unreleased]: https://github.com/sanchezrobertodev/kitkeeper/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/sanchezrobertodev/kitkeeper/compare/v0.5.0...v0.6.0
+[0.5.0]: https://github.com/sanchezrobertodev/kitkeeper/compare/v0.4.0...v0.5.0
+[0.4.0]: https://github.com/sanchezrobertodev/kitkeeper/compare/v0.3.0...v0.4.0
+[0.3.0]: https://github.com/sanchezrobertodev/kitkeeper/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/sanchezrobertodev/kitkeeper/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/sanchezrobertodev/kitkeeper/releases/tag/v0.1.0

@@ -247,7 +247,7 @@ fn open_item_repo(app: AppHandle, state: State<'_, AppState>, item_id: String) -
 /// Opens one of Kitkeeper's own pages on GitHub. The UI names the page; the URLs are fixed here.
 #[tauri::command]
 fn open_project_page(app: AppHandle, page: String) -> Result<(), String> {
-    const REPO: &str = "https://github.com/sanchezrobertodev/skillshelf";
+    const REPO: &str = "https://github.com/sanchezrobertodev/kitkeeper";
     let path = match page.as_str() {
         "repo" => "",
         "issues" => "/issues/new/choose",
