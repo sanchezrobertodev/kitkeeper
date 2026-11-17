@@ -36,6 +36,10 @@ trash = "5"
 semver = "1"
 regex = "1"
 
+[target.'cfg(windows)'.dependencies]
+# Already built for auto-launch; read directly to spot a stale login item (lib.rs `login_item`).
+windows-registry = "0.6"
+
 [target.'cfg(not(windows))'.dependencies]
 fix-path-env = { git = "https://github.com/tauri-apps/fix-path-env-rs" }
 

@@ -397,7 +397,79 @@ fn environment(app: AppHandle) -> Environment {
         os: std::env::consts::OS,
         version: env!("CARGO_PKG_VERSION"),
         tray: tray::has_tray(&app),
-        autostart: app.autolaunch().is_enabled().unwrap_or(false),
+        autostart: autostart_on(&app),
+    }
+}
+
+/// Whether the login item is on, as the Settings toggle shows it.
+fn autostart_on(app: &AppHandle) -> bool {
+    #[cfg(windows)]
+    if login_item::only_stale() {
+        return false;
+    }
+    app.autolaunch().is_enabled().unwrap_or(false)
+}
+
+/// Skillshelf, turned on with an admin token, kept its login item in HKLM. Without one, Kitkeeper's installer can't
+/// repoint it: it writes a working item in HKCU instead and leaves the HKLM one on the deleted Skillshelf exe, which
+/// `disable` can't remove either. auto-launch counts any item as on, so the toggle stayed on after turning it off.
+#[cfg(windows)]
+mod login_item {
+    use std::path::Path;
+    use windows_registry::{CURRENT_USER, Key, LOCAL_MACHINE};
+
+    /// True when the only login item is in HKLM and the exe it starts is gone, so nothing starts at login.
+    pub fn only_stale() -> bool {
+        let read = |root: &Key| {
+            root.open(r"Software\Microsoft\Windows\CurrentVersion\Run")
+                .and_then(|k| k.get_string(super::LOGIN_ITEM))
+                .ok()
+        };
+        stale(
+            read(CURRENT_USER).as_deref(),
+            read(LOCAL_MACHINE).as_deref(),
+            Path::exists,
+        )
+    }
+
+    fn stale(hkcu: Option<&str>, hklm: Option<&str>, exists: impl Fn(&Path) -> bool) -> bool {
+        hkcu.is_none() && hklm.is_some_and(|v| !exists(Path::new(target(v))))
+    }
+
+    /// The exe a Run value starts. auto-launch writes `<exe> --hidden`, unquoted.
+    fn target(value: &str) -> &str {
+        let v = value.trim();
+        v.strip_suffix(super::HIDDEN).unwrap_or(v).trim_end().trim_matches('"')
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        #[test]
+        fn reads_the_exe_from_a_run_value() {
+            assert_eq!(
+                target(r"C:\My Apps\Skillshelf\skillshelf.exe --hidden"),
+                r"C:\My Apps\Skillshelf\skillshelf.exe"
+            );
+            assert_eq!(target(r#""C:\x\skillshelf.exe" --hidden"#), r"C:\x\skillshelf.exe");
+            assert_eq!(target(r"C:\x\skillshelf.exe"), r"C:\x\skillshelf.exe");
+        }
+
+        #[test]
+        fn only_an_hklm_item_on_a_missing_exe_is_stale() {
+            let gone = |_: &Path| false;
+            let there = |_: &Path| true;
+            let old = Some(r"C:\Program Files\Skillshelf\skillshelf.exe --hidden");
+            assert!(stale(None, old, gone));
+            assert!(!stale(None, old, there));
+            assert!(!stale(
+                Some(r"C:\Users\x\AppData\Local\Kitkeeper\skillshelf.exe --hidden"),
+                old,
+                gone
+            ));
+            assert!(!stale(None, None, gone));
+        }
     }
 }
 
@@ -418,7 +490,7 @@ pub fn run() {
         // The builder's macOS default is a LaunchAgent, as before.
         .plugin(
             tauri_plugin_autostart::Builder::new()
-                .app_name("Skillshelf")
+                .app_name(LOGIN_ITEM)
                 .args([HIDDEN])
                 .build(),
         )
@@ -505,6 +577,9 @@ pub fn run() {
 
 /// Passed by the login item, which starts Kitkeeper in the tray.
 const HIDDEN: &str = "--hidden";
+
+/// The login item's name, from before the rename (see the autostart plugin in `run`).
+const LOGIN_ITEM: &str = "Skillshelf";
 
 /// Asks the UI to rescan and check once the chosen interval has passed since the last check.
 /// Hourly ticks, compared with the wall clock, so a sleeping laptop catches up when it wakes.

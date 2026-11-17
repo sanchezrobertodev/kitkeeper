@@ -106,8 +106,17 @@
         DeleteRegKey SHCTX "Software\${MANUFACTURER}\Skillshelf"
       ${EndIf}
     ${EndIf}
-    Delete "$SMPROGRAMS\Skillshelf.lnk"
-    Delete "$DESKTOP\Skillshelf.lnk"
+    ; Explorer can have a shortcut open for a moment, while it loads the desktop icons, and Delete fails then. The
+    ; old uninstaller doesn't retry either. Try again for up to 5 seconds.
+    ${For} $0 1 20
+      Delete "$SMPROGRAMS\Skillshelf.lnk"
+      Delete "$DESKTOP\Skillshelf.lnk"
+      ${IfNot} ${FileExists} "$SMPROGRAMS\Skillshelf.lnk"
+      ${AndIfNot} ${FileExists} "$DESKTOP\Skillshelf.lnk"
+        ${ExitFor}
+      ${EndIf}
+      Sleep 250
+    ${Next}
     ${If} $R3 = 1
       CreateShortcut "$SMPROGRAMS\${PRODUCTNAME}.lnk" "$INSTDIR\${MAINBINARYNAME}.exe"
       !insertmacro SetLnkAppUserModelId "$SMPROGRAMS\${PRODUCTNAME}.lnk"
