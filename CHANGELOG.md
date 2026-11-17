@@ -6,6 +6,11 @@ Each version's section is also its GitHub release notes and the "What's new" tex
 
 ## [Unreleased]
 
+### Fixed
+
+- On Windows, **Start Kitkeeper when you log in** (**Settings → General**) no longer shows as on after you turn it off. This happened when Skillshelf had been set to start for all users and the update to Kitkeeper ran without admin rights.
+- Updating from Skillshelf on Windows no longer leaves a Skillshelf shortcut on the desktop or in the Start menu when Windows was still busy with it.
+
 ## [0.6.0] - 2026-11-16
 
 ### Changed
