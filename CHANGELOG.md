@@ -6,6 +6,8 @@ Each version's section is also its GitHub release notes and the "What's new" tex
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-11-17
+
 ### Added
 
 - An accent color in **Settings → Appearance**. Keep your theme's own, or pick violet (except on Workbench, which is already violet), blue, teal, green or pink. Updates keep their own color, and High contrast keeps its own colors.
@@ -169,7 +171,8 @@ First release of Skillshelf, a desktop app for the skills and plugins you've ins
 - Filter, sort and search by type, status, source, marketplace/repo and on/off state.
 - Enable/disable plugins, uninstall items (always with a confirmation), and open an item's folder or source repo.
 
-[Unreleased]: https://github.com/sanchezrobertodev/kitkeeper/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/sanchezrobertodev/kitkeeper/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/sanchezrobertodev/kitkeeper/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/sanchezrobertodev/kitkeeper/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/sanchezrobertodev/kitkeeper/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/sanchezrobertodev/kitkeeper/compare/v0.3.0...v0.4.0
