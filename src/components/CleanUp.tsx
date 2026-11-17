@@ -121,7 +121,7 @@ function UnusedPlugins({ items }: { items: Item[] }) {
       {!unused ? (
         <p className="flex items-center gap-1.5 px-4 py-4 text-[13px] text-muted">
           <LoaderCircle aria-hidden className="size-4 animate-spin" />
-          {progress?.total ? t("cleanup.countingProgress", { read: progress.read, total: progress.total }) : t("cleanup.counting")}
+          {progress?.total ? t("cleanup.countingProgress", { percent: Math.floor((progress.read / progress.total) * 100) }) : t("cleanup.counting")}
         </p>
       ) : unused.length === 0 ? (
         <Empty>{t("cleanup.allUsed")}</Empty>

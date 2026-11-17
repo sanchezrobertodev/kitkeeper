@@ -12,7 +12,10 @@ export const accents = ["theme", "violet", "blue", "teal", "green", "pink"] as c
 export type Accent = (typeof accents)[number];
 /** The accent a palette already has, left out of its picker. Workbench differs from Violet only in the button gradient. */
 export const ownAccent: Partial<Record<Palette, Accent>> = { workbench: "violet" };
-export type SortKey = "name" | "kind" | "source" | "version" | "status" | "updated" | "cost" | "uses";
+export type SortKey = "name" | "kind" | "source" | "version" | "status" | "updated" | "installed" | "cost" | "uses" | "lastUsed";
+/** Library columns you can show or hide (Columns menu); Name and Status always show. */
+export const listColumns = ["type", "source", "version", "cost", "uses", "lastUsed", "updated", "installed"] as const;
+export type ListColumn = (typeof listColumns)[number];
 /** "Show only" filters that cut across type and source. */
 export type Flag = "mod" | "issues" | "unused" | "hooks";
 
@@ -32,6 +35,7 @@ export interface Prefs {
   language: LanguagePref;
   sort: { key: SortKey; desc: boolean };
   filters: Filters;
+  columns: ListColumn[];
 }
 
 export const emptyFilters: Filters = { kinds: [], statuses: [], sources: [], origins: [], enabled: "all", flags: [] };
@@ -43,6 +47,7 @@ const defaults: Prefs = {
   language: "system",
   sort: { key: "status", desc: false },
   filters: emptyFilters,
+  columns: ["type", "version", "uses", "lastUsed", "updated"],
 };
 
 const KEY = "skillshelf.prefs.v1";

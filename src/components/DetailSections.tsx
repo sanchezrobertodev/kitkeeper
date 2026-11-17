@@ -127,7 +127,7 @@ export function UsageSection({ item }: { item: Item }) {
       {!usage ? (
         <p className="flex items-center gap-1.5 text-xs text-muted">
           <LoaderCircle aria-hidden className="size-3.5 animate-spin" />
-          {progress?.total ? t("detail.countingProgress", { read: progress.read, total: progress.total }) : t("detail.counting")}
+          {progress?.total ? t("detail.countingProgress", { percent: Math.floor((progress.read / progress.total) * 100) }) : t("detail.counting")}
         </p>
       ) : (
         <div className="flex items-end gap-4">

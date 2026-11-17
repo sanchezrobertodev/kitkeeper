@@ -1,5 +1,5 @@
 import { Download, ExternalLink, FolderOpen, Power, PowerOff, RotateCcw, Trash2 } from "lucide-react";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { api, errorText } from "../api";
 import { type TKey, useT } from "../i18n";
@@ -27,9 +27,6 @@ export function ContextMenu({ target, onClose }: { target: MenuTarget; onClose: 
   const t = useT();
   const run = useStore((s) => s.run);
   const confirm = useStore((s) => s.confirm);
-  const menu = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState({ left: target.x, top: target.y });
-
   const { items } = target;
   const one = items.length === 1 ? items[0] : null;
   const label = (key: TKey, many: TKey, n: number) => (items.length > 1 ? t(many, { count: n }) : t(key));
@@ -50,59 +47,8 @@ export function ContextMenu({ target, onClose }: { target: MenuTarget; onClose: 
     removable.length && { label: label("menu.uninstall", "menu.uninstallMany", removable.length), icon: Trash2, danger: true, act: () => confirm({ type: "uninstall", items: removable }) },
   ].filter((e): e is Entry => !!e);
 
-  // Keep the menu inside the window.
-  useLayoutEffect(() => {
-    const r = menu.current?.getBoundingClientRect();
-    if (!r) return;
-    setPos({
-      left: Math.max(4, Math.min(target.x, window.innerWidth - r.width - 4)),
-      top: Math.max(4, Math.min(target.y, window.innerHeight - r.height - 4)),
-    });
-  }, [target]);
-
-  useEffect(() => {
-    const prev = document.activeElement as HTMLElement | null;
-    menu.current?.querySelector<HTMLElement>("[role=menuitem]")?.focus();
-    const away = (e: PointerEvent) => {
-      if (!menu.current?.contains(e.target as Node)) onClose();
-    };
-    const blur = () => onClose();
-    window.addEventListener("pointerdown", away, true);
-    window.addEventListener("blur", blur);
-    window.addEventListener("resize", blur);
-    return () => {
-      window.removeEventListener("pointerdown", away, true);
-      window.removeEventListener("blur", blur);
-      window.removeEventListener("resize", blur);
-      prev?.focus();
-    };
-  }, [onClose]);
-
-  const onKeyDown = (e: React.KeyboardEvent) => {
-    const list = [...(menu.current?.querySelectorAll<HTMLElement>("[role=menuitem]") ?? [])];
-    const i = list.indexOf(document.activeElement as HTMLElement);
-    const go = (n: number) => list[(n + list.length) % list.length]?.focus();
-    if (e.key === "ArrowDown") go(i + 1);
-    else if (e.key === "ArrowUp") go(i - 1);
-    else if (e.key === "Home") go(0);
-    else if (e.key === "End") go(list.length - 1);
-    else if (e.key === "Escape" || e.key === "Tab") onClose();
-    else return;
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  // Portalled to <body> so viewport coordinates hold: the list's frosted .card (backdrop-filter) would contain and clip it.
-  return createPortal(
-    <div
-      ref={menu}
-      role="menu"
-      aria-label={one ? t("menu.itemActions", { name: one.name }) : t("menu.itemsActions", { count: items.length })}
-      onKeyDown={onKeyDown}
-      onContextMenu={(e) => e.preventDefault()}
-      style={pos}
-      className="fixed z-40 min-w-48 rounded-lg border border-card-border bg-surface p-1 shadow-2xl"
-    >
+  return (
+    <Menu x={target.x} y={target.y} label={one ? t("menu.itemActions", { name: one.name }) : t("menu.itemsActions", { count: items.length })} onClose={onClose}>
       {entries.length === 0 && <p className="px-2.5 py-1.5 text-[13px] text-muted">{t("menu.none")}</p>}
       {entries.map((e) => (
         <button
@@ -123,6 +69,72 @@ export function ContextMenu({ target, onClose }: { target: MenuTarget; onClose: 
           {e.label}
         </button>
       ))}
+    </Menu>
+  );
+}
+
+/**
+ * A popup menu at (x, y), kept inside the window: arrow keys move between its menuitem(-checkbox)es, and
+ * Escape, Tab, a click outside, blur or resize close it. Focus returns to where it was.
+ */
+export function Menu({ x, y, label, onClose, children }: { x: number; y: number; label: string; onClose: () => void; children: ReactNode }) {
+  const menu = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState({ left: x, top: y });
+  const items = () => [...(menu.current?.querySelectorAll<HTMLElement>("[role^=menuitem]") ?? [])];
+
+  useLayoutEffect(() => {
+    const r = menu.current?.getBoundingClientRect();
+    if (!r) return;
+    setPos({
+      left: Math.max(4, Math.min(x, window.innerWidth - r.width - 4)),
+      top: Math.max(4, Math.min(y, window.innerHeight - r.height - 4)),
+    });
+  }, [x, y]);
+
+  useEffect(() => {
+    const prev = document.activeElement as HTMLElement | null;
+    menu.current?.querySelector<HTMLElement>("[role^=menuitem]")?.focus();
+    const away = (e: PointerEvent) => {
+      if (!menu.current?.contains(e.target as Node)) onClose();
+    };
+    const blur = () => onClose();
+    window.addEventListener("pointerdown", away, true);
+    window.addEventListener("blur", blur);
+    window.addEventListener("resize", blur);
+    return () => {
+      window.removeEventListener("pointerdown", away, true);
+      window.removeEventListener("blur", blur);
+      window.removeEventListener("resize", blur);
+      prev?.focus();
+    };
+  }, [onClose]);
+
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    const list = items();
+    const i = list.indexOf(document.activeElement as HTMLElement);
+    const go = (n: number) => list[(n + list.length) % list.length]?.focus();
+    if (e.key === "ArrowDown") go(i + 1);
+    else if (e.key === "ArrowUp") go(i - 1);
+    else if (e.key === "Home") go(0);
+    else if (e.key === "End") go(list.length - 1);
+    else if (e.key === "Escape" || e.key === "Tab") onClose();
+    else return;
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  // Portalled to <body> so viewport coordinates hold: the list's frosted .card (backdrop-filter) would contain and clip it.
+  return createPortal(
+    <div
+      ref={menu}
+      role="menu"
+      aria-label={label}
+      onKeyDown={onKeyDown}
+      onContextMenu={(e) => e.preventDefault()}
+      style={pos}
+      className="fixed z-40 min-w-48 rounded-lg border border-card-border bg-surface p-1 shadow-2xl"
+    >
+      {children}
     </div>,
     document.body,
   );

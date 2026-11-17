@@ -10,8 +10,13 @@ Each version's section is also its GitHub release notes and the "What's new" tex
 
 - An accent color in **Settings → Appearance**. Keep your theme's own, or pick violet (except on Workbench, which is already violet), blue, teal, green or pink. Updates keep their own color, and High contrast keeps its own colors.
 - The app version at the bottom of the left rail. Click it to check for a new Kitkeeper. When one is found it shows **Update**, which opens what's new.
+- New Library columns: **Type**, **Last used** and **Installed**. **Uses** now shows a 30-day graph beside the count.
+- A **Columns** button at the right end of the Library header picks which columns show. A picked column that doesn't fit the window is marked **No room**.
+- A **Most used** chart on the Overview: your 8 most used items over 30 days, with the total and the daily trend. **Context per session** is now a chart of the 8 heaviest items. Hover a bar for details, and click it to open the item.
 
 ### Changed
+
+- **Updated** in the Library shows only when an item was last updated. The install date is in the new **Installed** column.
 
 - Settings is split into sections: General, Appearance, Updates, Project folders and About. **Notify me about new updates** moved to **Updates**.
 - Every update button is orange, including **Update to…** in the details panel, **Update** in the bar for selected items and **Update all** in the review sheet. Orange now only marks updates: **Up to date** chips and skill icons are grey, and notes in the details panel and missing tools in **Settings → About** are blue-grey.
@@ -31,6 +36,7 @@ Each version's section is also its GitHub release notes and the "What's new" tex
 - In windows narrower than 1024px, screen readers still hear the check status ("Checking for updates…", "Checked 2m ago").
 - While Kitkeeper scans or checks for updates, the toolbar says **Review updates** (greyed out) instead of **No updates**.
 - Filter counts of 0 are easier to read.
+- While Kitkeeper counts uses, it shows how far along it is as a percentage. Before, it showed a byte count and called it transcripts.
 
 ## [0.6.0] - 2026-11-16
 

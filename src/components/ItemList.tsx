@@ -1,55 +1,72 @@
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { ArrowDown, ArrowUp, ArrowUpDown, CircleAlert, Download, FilterX, Power, PowerOff, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Check, CircleAlert, Columns3, Download, FilterX, Power, PowerOff, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
-import { t, useT } from "../i18n";
+import { t, type TKey, useT } from "../i18n";
 import { cx } from "../lib/cx";
-import { canToggle, canUninstall, issueText, kindLabel, modKey, relativeTime, sourceLabel } from "../lib/format";
+import { canToggle, canUninstall, fullDate, issueText, kindLabel, modKey, relativeTime, sourceLabel } from "../lib/format";
 import { loadsEverywhere, shortCount } from "../lib/insights";
-import type { SortKey } from "../lib/prefs";
+import { type ListColumn, listColumns, type SortKey } from "../lib/prefs";
 import { isActive, updatable, useStore } from "../store";
-import type { Item } from "../types";
-import { ContextMenu, type MenuTarget } from "./ContextMenu";
-import { Button, card, Checkbox, KindIcon, StatusBadge, Switch } from "./ui";
+import type { Item, Usage } from "../types";
+import { ContextMenu, Menu, type MenuTarget } from "./ContextMenu";
+import { Sparkline } from "./Sparkline";
+import { Button, card, Checkbox, IconButton, KindIcon, StatusBadge, Switch } from "./ui";
 
-type Col = "source" | "version" | "cost" | "uses" | "updated";
-
-/** Optional columns, most important first; as the list narrows they drop from the end. */
-const optional: [Col, number][] = [
-  ["version", 172],
-  ["source", 136],
-  ["cost", 72],
-  ["uses", 64],
-  ["updated", 92],
-];
-const width = Object.fromEntries(optional) as Record<Col, number>;
+/** Columns left of Status, then right of it, in grid order. */
+const before: ListColumn[] = ["type", "source", "version"];
+const after: ListColumn[] = ["cost", "uses", "lastUsed", "updated", "installed"];
+const width: Record<ListColumn, number> = { type: 80, source: 136, version: 172, cost: 72, uses: 112, lastUsed: 96, updated: 104, installed: 96 };
+/** When the columns you picked don't all fit, they drop from the end of this list. */
+const priority: ListColumn[] = ["version", "uses", "type", "lastUsed", "source", "cost", "updated", "installed"];
+const colLabel: Record<ListColumn, TKey> = {
+  type: "list.colType",
+  source: "list.colSource",
+  version: "list.colVersion",
+  cost: "list.colCost",
+  uses: "list.colUses",
+  lastUsed: "list.colLastUsed",
+  updated: "list.colUpdated",
+  installed: "list.colInstalled",
+};
+const colSort: Record<ListColumn, SortKey> = {
+  type: "kind",
+  source: "source",
+  version: "version",
+  cost: "cost",
+  uses: "uses",
+  lastUsed: "lastUsed",
+  updated: "updated",
+  installed: "installed",
+};
 const GAP = 12;
 const ROW_HEIGHT = 52;
 // Checkbox, name at its minimum, status and actions, plus the row's side padding.
 const BASE = 40 + 190 + 152 + 76 + 3 * GAP + 32;
 
-function useColumns(ref: React.RefObject<HTMLElement | null>): Set<Col> {
-  const [cols, setCols] = useState<Set<Col>>(() => new Set(optional.map(([c]) => c)));
+/** The picked columns that fit the list's width. */
+function useColumns(ref: React.RefObject<HTMLElement | null>, picked: ListColumn[]): Set<ListColumn> {
+  const [cols, setCols] = useState<Set<ListColumn>>(() => new Set(picked));
   useEffect(() => {
     if (!ref.current) return;
     const ro = new ResizeObserver(([e]) => {
       let used = BASE;
-      const next: Col[] = [];
-      for (const [c, w] of optional) {
-        if (used + w + GAP > e.contentRect.width) break;
-        used += w + GAP;
+      const next: ListColumn[] = [];
+      for (const c of priority.filter((c) => picked.includes(c))) {
+        if (used + width[c] + GAP > e.contentRect.width) break;
+        used += width[c] + GAP;
         next.push(c);
       }
       setCols((prev) => (prev.size === next.length && next.every((c) => prev.has(c)) ? prev : new Set(next)));
     });
     ro.observe(ref.current);
     return () => ro.disconnect();
-  }, [ref]);
+  }, [ref, picked]);
   return cols;
 }
 
-function template(cols: Set<Col>) {
-  const px = (list: Col[]) => list.filter((c) => cols.has(c)).map((c) => `${width[c]}px`);
-  return ["40px", "minmax(190px,1fr)", ...px(["source", "version"]), "152px", ...px(["cost", "uses", "updated"]), "76px"].join(" ");
+function template(cols: Set<ListColumn>) {
+  const px = (list: ListColumn[]) => list.filter((c) => cols.has(c)).map((c) => `${width[c]}px`);
+  return ["40px", "minmax(190px,1fr)", ...px(before), "152px", ...px(after), "76px"].join(" ");
 }
 
 function costTitle(item: Item) {
@@ -99,6 +116,118 @@ function VersionCell({ item }: { item: Item }) {
         </>
       )}
     </div>
+  );
+}
+
+function ColumnCell({ col, item, usage }: { col: ListColumn; item: Item; usage: Record<string, Usage> | null }) {
+  const t = useT();
+  const counting = (
+    <span className="text-muted" aria-label={t("list.counting")}>
+      …
+    </span>
+  );
+  const date = (iso: string | null | undefined) => (
+    <div role="gridcell" className="text-xs text-muted" title={iso ? fullDate(iso) : undefined}>
+      {relativeTime(iso)}
+    </div>
+  );
+  const u = usage?.[item.id];
+  switch (col) {
+    case "type":
+      return (
+        <div role="gridcell" className="truncate text-[13px]">
+          {kindLabel[item.kind]}
+        </div>
+      );
+    case "source":
+      return (
+        <div role="gridcell" className="min-w-0 text-[13px]">
+          <div className="truncate">{sourceLabel[item.source]}</div>
+          <div className="truncate font-mono text-[11px] text-muted" title={item.origin ?? undefined}>
+            {item.origin ?? ""}
+          </div>
+        </div>
+      );
+    case "version":
+      return (
+        <div role="gridcell" className="min-w-0">
+          <VersionCell item={item} />
+        </div>
+      );
+    case "cost":
+      return (
+        <div role="gridcell" title={costTitle(item)} className={cx("font-mono text-xs tabular-nums", !loadsEverywhere(item) && "text-muted")}>
+          {item.cost?.total ? `≈${shortCount(item.cost.total)}` : "—"}
+        </div>
+      );
+    case "uses":
+      return (
+        <div role="gridcell" className="flex items-center gap-2">
+          {usage ? (
+            <>
+              <Sparkline daily={u?.daily ?? []} className="h-5 w-16 shrink-0" />
+              <span title={t("list.usesTitle")} className="font-mono text-xs tabular-nums">
+                {u?.uses ?? 0}
+              </span>
+            </>
+          ) : (
+            counting
+          )}
+        </div>
+      );
+    case "lastUsed":
+      return usage ? date(u?.lastUsed) : <div role="gridcell">{counting}</div>;
+    case "updated":
+      return date(item.updatedAt);
+    case "installed":
+      return date(item.installedAt);
+  }
+}
+
+/** Ticks which columns the list shows; a ticked one the list has no room for says so. */
+function ColumnsButton({ shown }: { shown: Set<ListColumn> }) {
+  const t = useT();
+  const columns = useStore((s) => s.columns);
+  const toggleColumn = useStore((s) => s.toggleColumn);
+  const [at, setAt] = useState<{ x: number; y: number } | null>(null);
+  const close = useCallback(() => setAt(null), []);
+  return (
+    <>
+      <IconButton
+        label={t("list.columns")}
+        aria-haspopup="menu"
+        aria-expanded={!!at}
+        className="size-7"
+        onClick={(e) => {
+          const r = e.currentTarget.getBoundingClientRect();
+          setAt(at ? null : { x: r.right - 208, y: r.bottom + 4 });
+        }}
+      >
+        <Columns3 aria-hidden className="size-4" />
+      </IconButton>
+      {at && (
+        <Menu x={at.x} y={at.y} label={t("list.columns")} onClose={close}>
+          {listColumns.map((c) => {
+            const on = columns.includes(c);
+            return (
+              <button
+                key={c}
+                type="button"
+                role="menuitemcheckbox"
+                aria-checked={on}
+                tabIndex={-1}
+                onClick={() => toggleColumn(c)}
+                className="flex h-8 w-full min-w-48 items-center gap-2 rounded-md px-2.5 text-left text-[13px] transition-colors duration-100 hover:bg-surface-hover focus-visible:bg-surface-hover focus-visible:outline-none"
+              >
+                <Check aria-hidden className={cx("size-4 shrink-0 text-accent", !on && "invisible")} />
+                {t(colLabel[c])}
+                {on && !shown.has(c) && <span className="ml-auto pl-3 text-xs text-muted">{t("list.columnNoRoom")}</span>}
+              </button>
+            );
+          })}
+        </Menu>
+      )}
+    </>
   );
 }
 
@@ -239,8 +368,8 @@ export function ItemList({ rows }: { rows: Item[] }) {
 
   const wrap = useRef<HTMLDivElement>(null);
   const scroller = useRef<HTMLDivElement>(null);
-  const cols = useColumns(wrap);
   const usage = useStore((s) => s.usage);
+  const cols = useColumns(wrap, useStore((s) => s.columns));
   const grid = template(cols);
 
   const virtualizer = useVirtualizer({
@@ -356,14 +485,20 @@ export function ItemList({ rows }: { rows: Item[] }) {
             />
           </div>
           <SortHeader label={t("list.colName")} k="name" />
-          {cols.has("source") && <SortHeader label={t("list.colSource")} k="source" />}
-          {cols.has("version") && <SortHeader label={t("list.colVersion")} k="version" />}
+          {before
+            .filter((c) => cols.has(c))
+            .map((c) => (
+              <SortHeader key={c} label={t(colLabel[c])} k={colSort[c]} />
+            ))}
           <SortHeader label={t("list.colStatus")} k="status" />
-          {cols.has("cost") && <SortHeader label={t("list.colCost")} k="cost" />}
-          {cols.has("uses") && <SortHeader label={t("list.colUses")} k="uses" />}
-          {cols.has("updated") && <SortHeader label={t("list.colUpdated")} k="updated" />}
-          <div role="columnheader" className="text-right text-xs font-semibold tracking-wide text-muted uppercase">
+          {after
+            .filter((c) => cols.has(c))
+            .map((c) => (
+              <SortHeader key={c} label={t(colLabel[c])} k={colSort[c]} />
+            ))}
+          <div role="columnheader" className="flex justify-end">
             <span className="sr-only">{t("list.colActions")}</span>
+            <ColumnsButton shown={cols} />
           </div>
         </div>
 
@@ -434,45 +569,23 @@ export function ItemList({ rows }: { rows: Item[] }) {
                             {t("list.issues", { count: item.issues.length })}
                           </span>
                         )}
-                        <span className="sr-only">{kindLabel[item.kind]}</span>
+                        {!cols.has("type") && <span className="sr-only">{kindLabel[item.kind]}</span>}
                       </div>
                       <p className="truncate pl-6 text-xs text-muted">{item.description ?? t("list.noDescription")}</p>
                     </div>
-                    {cols.has("source") && (
-                      <div role="gridcell" className="min-w-0 text-[13px]">
-                        <div className="truncate">{sourceLabel[item.source]}</div>
-                        <div className="truncate font-mono text-[11px] text-muted" title={item.origin ?? undefined}>
-                          {item.origin ?? ""}
-                        </div>
-                      </div>
-                    )}
-                    {cols.has("version") && (
-                      <div role="gridcell" className="min-w-0">
-                        <VersionCell item={item} />
-                      </div>
-                    )}
+                    {before
+                      .filter((c) => cols.has(c))
+                      .map((c) => (
+                        <ColumnCell key={c} col={c} item={item} usage={usage} />
+                      ))}
                     <div role="gridcell" className="min-w-0">
                       <StatusBadge status={item.status} checking={busy === "checking"} title={item.statusDetail} />
                     </div>
-                    {cols.has("cost") && (
-                      <div
-                        role="gridcell"
-                        title={costTitle(item)}
-                        className={cx("font-mono text-xs tabular-nums", !loadsEverywhere(item) && "text-muted")}
-                      >
-                        {item.cost?.total ? `≈${shortCount(item.cost.total)}` : "—"}
-                      </div>
-                    )}
-                    {cols.has("uses") && (
-                      <div role="gridcell" title={t("list.usesTitle")} className="font-mono text-xs tabular-nums">
-                        {usage ? (usage[item.id]?.uses ?? 0) : <span className="text-muted" aria-label={t("list.counting")}>…</span>}
-                      </div>
-                    )}
-                    {cols.has("updated") && (
-                      <div role="gridcell" className="text-xs text-muted" title={item.updatedAt ?? item.installedAt ?? undefined}>
-                        {relativeTime(item.updatedAt ?? item.installedAt)}
-                      </div>
-                    )}
+                    {after
+                      .filter((c) => cols.has(c))
+                      .map((c) => (
+                        <ColumnCell key={c} col={c} item={item} usage={usage} />
+                      ))}
                     <div role="gridcell">
                       <RowActions item={item} busy={busyIds.has(item.id)} />
                     </div>

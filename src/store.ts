@@ -13,6 +13,7 @@ import {
   type Palette,
   type Prefs,
   savePrefs,
+  type ListColumn,
   type SortKey,
   type Theme,
 } from "./lib/prefs";
@@ -70,6 +71,7 @@ interface State extends Prefs {
   setFilters: (f: Partial<Filters>) => void;
   clearFilters: () => void;
   setSort: (key: SortKey) => void;
+  toggleColumn: (column: ListColumn) => void;
   setTheme: (t: Theme) => void;
   setPalette: (p: Palette) => void;
   setAccent: (a: Accent) => void;
@@ -118,8 +120,8 @@ let pending: { check?: boolean } | null = null;
 
 export const useStore = create<State>((set, get) => {
   const persist = () => {
-    const { theme, palette, accent, language, sort, filters } = get();
-    savePrefs({ theme, palette, accent, language, sort, filters });
+    const { theme, palette, accent, language, sort, filters, columns } = get();
+    savePrefs({ theme, palette, accent, language, sort, filters, columns });
   };
   const runPending = () => {
     const s = get();
@@ -335,6 +337,10 @@ export const useStore = create<State>((set, get) => {
     },
     setSort: (key) => {
       set((s) => ({ sort: { key, desc: s.sort.key === key ? !s.sort.desc : false } }));
+      persist();
+    },
+    toggleColumn: (column) => {
+      set((s) => ({ columns: s.columns.includes(column) ? s.columns.filter((c) => c !== column) : [...s.columns, column] }));
       persist();
     },
     setTheme: (theme) => {
