@@ -57,7 +57,7 @@
   "plugins": {
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEMwNjgwQjdCODczOUQyNkYKUldSdjBqbUhld3Rvd055Z0h1ZUhNMTU0ai9oU0lBUDZZVExOUGlMM3FJU3BwcU9YM2RMMlF5UHUK",
-      "endpoints": ["https://github.com/sanchezrobertodev/skillshelf/releases/latest/download/latest.json"]
+      "endpoints": ["https://github.com/sanchezrobertodev/kitkeeper/releases/latest/download/latest.json"]
     }
   }
 }

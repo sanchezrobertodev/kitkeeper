@@ -4,7 +4,7 @@ Thanks for helping. Bug reports, translations, themes and code are all welcome.
 
 ## Report a bug or ask for a feature
 
-Open an [issue](https://github.com/sanchezrobertodev/skillshelf/issues/new/choose). For a bug, say which OS and Kitkeeper version you use (both are in **Settings → About**) and what you expected to happen. Security problems go through [SECURITY.md](SECURITY.md) instead.
+Open an [issue](https://github.com/sanchezrobertodev/kitkeeper/issues/new/choose). For a bug, say which OS and Kitkeeper version you use (both are in **Settings → About**) and what you expected to happen. Security problems go through [SECURITY.md](SECURITY.md) instead.
 
 ## Set up
 
