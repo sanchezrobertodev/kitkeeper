@@ -16,7 +16,7 @@
 
 - **A glowing canvas with frosted cards.** The window background has three faint glows (teal top-left, violet top-right, pink bottom-right). Content (the list, details, overview tiles, the queue) sits on frosted cards: the surface colour at 78% (72% in dark) with a 20px backdrop blur, a soft shadow and a hairline edge. The glow, the gradient and the glass belong to Workbench only; the other palettes stay flat and opaque.
 - **Violet is for action and place.** It marks the active rail item, links, switches and focus. Primary buttons use the violet-to-teal gradient with a soft violet glow.
-- **Orange means "update".** Use it only for update status, update buttons and update risk flags, so a pending update is the one warm thing on screen.
+- **Orange means "update".** Use it only for update status, update buttons and update risk flags, so a pending update is the one warm thing on screen. Risk flags on a plugin you haven't installed yet (Discover) use the info tint.
 - **Status is never colour alone.** Every chip has an icon and text. Every chart has a text alternative (`role="img"` plus `aria-label`).
 - **Components use semantic tokens only** (`bg-surface`, `text-muted`, `bg-warn`…), never raw hex.
 
@@ -87,7 +87,8 @@ Workbench-only style tokens, read by the `[data-palette="workbench"]` rules in `
 │    │ (banners: rounded strips, 20px gutter)                       │
 │ OV │ ┌filters┐ ┌──────── list card ───────┐ ┌── details card ──┐ │
 │ LIB│ │ on bg │ │ header row               │ │                  │ │
-│ CU │ │       │ │ rows…                    │ │                  │ │
+│ DIS│ │       │ │ rows…                    │ │                  │ │
+│ CU │ │       │ │                          │ │                  │ │
 │ MCP│ └───────┘ └──────────────────────────┘ └──────────────────┘ │
 │ ☾ ⚙│ ┌──────────────── queue card (when jobs exist) ───────────┐ │
 └────┴──────────────────────────────────────────────────────────────┘
@@ -96,6 +97,7 @@ Workbench-only style tokens, read by the `[data-palette="workbench"]` rules in `
 - Below 1240px wide, the details card overlays the list instead of sitting beside it.
 - Settings: a 176px section nav on the canvas (General, Appearance, Updates, Project folders, About; the current one uses the nav-active fill) beside one section at a time, as a 15px title over one card of rows.
 - Library list: Name, Status and the row actions always show. The Columns button at the end of the header picks the rest (Type, Source, Version, Cost, Uses, Last used, Updated, Installed; default Type, Version, Uses, Last used, Updated). Picked columns that don't fit drop in a fixed order (`priority` in `ItemList.tsx`) and the menu marks them "No room".
+- Discover: one header card (the count, a hint, and Marketplace and Category selects), then one list card. Each row has the name (opens the review), marketplace · category, a two-line description, the token estimate and risk chips, and a secondary Install button that also opens the review. The review dialog lists what runs without asking, the context cost and the contents; the Install button in it is `primary`. The toolbar search filters Discover while it is open.
 - Overview: a grid of 300px-minimum tiles. The chart tiles (Context per session, Most used) span two columns once the grid has three (a container query), with dense packing filling the gaps.
 - Minimum window 960×600.
 

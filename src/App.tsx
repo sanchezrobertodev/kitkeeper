@@ -6,6 +6,7 @@ import { AppUpdateBanner, ReleaseNotesDialog } from "./components/AppUpdate";
 import { CleanUp } from "./components/CleanUp";
 import { DetailPanel } from "./components/DetailPanel";
 import { ConfirmDialogs } from "./components/Dialogs";
+import { Discover } from "./components/Discover";
 import { FilterSidebar } from "./components/FilterSidebar";
 import { ItemList } from "./components/ItemList";
 import { McpServers } from "./components/McpServers";
@@ -126,6 +127,8 @@ export default function App() {
           </div>
         ) : screen === "overview" ? (
           <Overview />
+        ) : screen === "discover" ? (
+          <Discover />
         ) : screen === "cleanup" ? (
           <CleanUp />
         ) : screen === "mcp" ? (

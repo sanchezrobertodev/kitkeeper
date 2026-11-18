@@ -12,6 +12,7 @@ const actionLabel: Record<Action, TKey> = {
   disable: "queue.action.disable",
   uninstall: "queue.action.uninstall",
   reinstall: "queue.action.reinstall",
+  install: "queue.action.install",
 };
 
 const stateMeta: Record<Job["state"], { label: TKey; icon: typeof Clock; cls: string }> = {

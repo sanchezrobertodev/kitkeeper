@@ -10,6 +10,7 @@ A desktop app for the skills and plugins you've installed for Claude Code. It ru
 - **Review before you update**: commits and release notes between your version and the latest, plus risk flags when an update changes hooks, MCP servers, scripts or a skill's allowed tools (see below).
 - **Update** one item from its row, the right-click menu, the details panel or the tray, or several with **Update all**: a review sheet where you untick what to skip. A batch shows its progress and has a **Stop** button.
 - **See what each item costs**: an estimate of the tokens it adds to every session, and how often you used it in the last 30 days, counted from your local transcripts (see below).
+- **Discover plugins** from the marketplaces you've added, and install them after a review of what they would run without asking, their context cost and their contents.
 - **Clean up**: unused plugins, plugins with hooks, org-managed plugins (locked), and skills that moved or were removed upstream, with Turn off, Uninstall and Reinstall.
 - **Check MCP servers**: each server's status, grouped by plugin, with the reason when it can't connect.
 - **Filter, sort and search** by type, status, source, marketplace/repo, on/off state, and Unused, Has issues, Has hooks or Mods. Sort by context cost or uses too. Each filter option shows a count.
@@ -183,7 +184,8 @@ CI signs with the `TAURI_SIGNING_PRIVATE_KEY` repository secret. The matching pu
 src-tauri/src/
   scan/        offline discovery of plugins and skills
   updates/     update checks, what changed, risk flags
-  actions.rs   update, enable, disable, uninstall (fixed argument lists, validated ids)
+  actions.rs   install, update, enable, disable, uninstall (fixed argument lists, validated ids)
+  catalog.rs   plugins your marketplaces list (Discover), with contents and risk flags for local ones
   cost.rs      context cost estimate
   usage.rs     uses counted from local transcripts (no network)
   health.rs    skill health checks
@@ -192,7 +194,7 @@ src-tauri/src/
   selfupdate.rs  updating a copy that runs from its git clone
   proc.rs      runs CLIs without a shell or console window
 src/
-  components/  rail, Overview, Library (list, filters, details panel), Clean Up, MCP, review sheet, queue, dialogs
+  components/  rail, Overview, Library (list, filters, details panel), Discover, Clean Up, MCP, review sheet, queue, dialogs
   i18n/        UI text, one JSON file per language (also used for the tray and notifications)
   store.ts     app state (zustand)
 design-system/ design tokens and rules (ui-ux-pro-max)

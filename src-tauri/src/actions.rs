@@ -1,4 +1,4 @@
-//! Update / enable / disable / uninstall. Each action is a fixed argument list
+//! Install / update / enable / disable / uninstall. Each action is a fixed argument list
 //! for a known CLI; ids are validated before they reach a command line.
 
 use std::path::PathBuf;
@@ -23,6 +23,8 @@ pub enum Action {
     Uninstall,
     /// Skills CLI: install again from where the skill lives now (moved upstream, or its link is gone).
     Reinstall,
+    /// A plugin listed in a marketplace you've added (Discover), for your user.
+    Install,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -151,6 +153,7 @@ pub fn plan(item: &Item, req: &ActionRequest) -> Result<Plan, String> {
                 Action::Enable | Action::Disable => {
                     return Err("Skills can't be enabled or disabled individually".into());
                 }
+                Action::Install => return Err("Only plugins can be installed here".into()),
             };
             Ok(Plan::Cli {
                 program: "npx",
@@ -175,6 +178,7 @@ pub fn plan(item: &Item, req: &ActionRequest) -> Result<Plan, String> {
                 Err("No installer tracks this skill, so it can't be updated or reinstalled automatically".into())
             }
             Action::Enable | Action::Disable => Err("Skills can't be enabled or disabled individually".into()),
+            Action::Install => Err("Only plugins can be installed here".into()),
         },
         _ => Err("Unsupported item".into()),
     }
@@ -194,7 +198,7 @@ fn plugin_plan(item: &Item, req: &ActionRequest) -> Result<Plan, String> {
         return Err(format!("Refusing unusual plugin id `{plugin_id}`"));
     }
     let synced = item.source == Source::Synced;
-    if synced && matches!(req.action, Action::Update | Action::Uninstall) {
+    if synced && matches!(req.action, Action::Update | Action::Uninstall | Action::Install) {
         return Err("Managed by your claude.ai organization".into());
     }
 
@@ -204,12 +208,13 @@ fn plugin_plan(item: &Item, req: &ActionRequest) -> Result<Plan, String> {
         Action::Enable => "enable",
         Action::Disable => "disable",
         Action::Uninstall => "uninstall",
+        Action::Install => "install",
     };
     let mut args = vec!["plugin".to_string(), verb.into(), plugin_id.clone(), "--json".into()];
     if matches!(scope.as_str(), "user" | "project" | "local") {
         args.extend(["-s".into(), scope.clone()]);
     }
-    if req.action == Action::Update
+    if matches!(req.action, Action::Update | Action::Install)
         && let Some(sha) = &req.accept_command
     {
         if sha.len() != 64 || !sha.chars().all(|c| c.is_ascii_hexdigit()) {
@@ -366,6 +371,19 @@ mod tests {
         };
         assert_eq!(program, "claude");
         assert_eq!(args, ["plugin", "update", "x@m", "--json", "-s", "user"]);
+    }
+
+    #[test]
+    fn plugin_install_args() {
+        let r = ActionRequest {
+            accept_command: Some("a".repeat(64)),
+            ..req(Action::Install)
+        };
+        let Plan::Cli { args, .. } = plan(&plugin("user", Source::Marketplace), &r).unwrap() else {
+            panic!()
+        };
+        let accept = format!("--accept-command {}", "a".repeat(64));
+        assert_eq!(args.join(" "), format!("plugin install x@m --json -s user {accept}"));
     }
 
     #[test]

@@ -239,7 +239,15 @@ fn split_tools(s: &str) -> Vec<String> {
 
 /// Risks between an installed folder and the folder it would be updated from, both on disk.
 pub fn between_folders(installed: &Path, latest: &Path) -> Vec<Risk> {
-    let (old, new) = (files(installed), files(latest));
+    between(&files(installed), &files(latest))
+}
+
+/// Risks in a plugin that isn't installed yet: every file in it counts as added.
+pub fn in_folder(dir: &Path) -> Vec<Risk> {
+    between(&BTreeMap::new(), &files(dir))
+}
+
+fn between(old: &BTreeMap<String, PathBuf>, new: &BTreeMap<String, PathBuf>) -> Vec<Risk> {
     let mut changed: Vec<String> = old
         .keys()
         .chain(new.keys())
@@ -257,7 +265,7 @@ pub fn between_folders(installed: &Path, latest: &Path) -> Vec<Risk> {
         .filter(|rel| matches!(file_name(rel).as_str(), "plugin.json" | "skill.md"))
         .map(String::as_str)
         .chain([PLUGIN_JSON])
-        .map(|rel| (rel.to_string(), (read(&old, rel), read(&new, rel))))
+        .map(|rel| (rel.to_string(), (read(old, rel), read(new, rel))))
         .collect();
     assess(&changed, &contents)
 }
@@ -389,5 +397,24 @@ mod tests {
         let r = between_folders(a.path(), b.path());
         assert_eq!(kinds(&r), [RiskKind::Hooks]);
         assert!(between_folders(a.path(), a.path()).is_empty());
+    }
+
+    #[test]
+    fn a_folder_not_installed_yet_counts_every_file() {
+        let dir = tempfile::tempdir().unwrap();
+        let write = |rel: &str, text: &str| {
+            let path = dir.path().join(rel);
+            std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+            std::fs::write(path, text).unwrap();
+        };
+        write("hooks/hooks.json", "{}");
+        write(
+            "skills/a/SKILL.md",
+            "---\nname: a\nallowed-tools: Bash(git:*), Read\n---\n",
+        );
+        write("README.md", "# a");
+        let r = in_folder(dir.path());
+        assert_eq!(kinds(&r), [RiskKind::Hooks, RiskKind::AllowedTools]);
+        assert_eq!(r[1].added, ["Bash(git:*)", "Read"]);
     }
 }
