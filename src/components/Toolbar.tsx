@@ -8,6 +8,7 @@ import { Button, IconButton, Kbd } from "./ui";
 const titles: Record<Screen, TKey> = {
   overview: "rail.overview",
   library: "rail.library",
+  discover: "rail.discover",
   cleanup: "rail.cleanup",
   mcp: "toolbar.mcpServers",
   settings: "rail.settings",
@@ -16,8 +17,10 @@ const titles: Record<Screen, TKey> = {
 export function Toolbar() {
   const t = useT();
   const screen = useStore((s) => s.screen);
-  const query = useStore((s) => s.query);
-  const setQuery = useStore((s) => s.setQuery);
+  // Discover searches the plugins you can install; everywhere else searches the Library.
+  const discover = screen === "discover";
+  const query = useStore((s) => (discover ? s.discoverQuery : s.query));
+  const setQuery = useStore((s) => (discover ? s.setDiscoverQuery : s.setQuery));
   const busy = useStore((s) => s.busy);
   const checkedAt = useStore((s) => s.checkedAt);
   const items = useStore((s) => s.items);
@@ -70,7 +73,7 @@ export function Toolbar() {
           onKeyDown={(e) => {
             if (e.key === "Escape") setQuery("");
           }}
-          placeholder={t("toolbar.searchPlaceholder")}
+          placeholder={t(discover ? "toolbar.searchDiscover" : "toolbar.searchPlaceholder")}
           aria-label={t("toolbar.search")}
           className="h-9 w-full rounded-lg border border-border bg-surface pr-16 pl-9 text-sm shadow-card placeholder:text-muted focus-visible:outline-2 [&::-webkit-search-cancel-button]:appearance-none"
         />

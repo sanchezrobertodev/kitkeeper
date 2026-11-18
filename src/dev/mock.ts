@@ -4,6 +4,7 @@
 import type {
   ActionRequest,
   AppUpdate,
+  CatalogEntry,
   Changelog,
   CheckResult,
   DownloadProgress,
@@ -206,6 +207,76 @@ function mockChangelog(item: Item): Changelog {
   return { ...empty, note: "There's nothing to compare this item against." };
 }
 
+/** Discover's list: the installed marketplace plugins (hidden as installed) plus samples of each kind of source. */
+function mockCatalog(): CatalogEntry[] {
+  const base = { version: null, author: null, page: null, from: null, contents: null };
+  const installed: CatalogEntry[] = items
+    .filter((i) => i.kind === "plugin" && i.source === "marketplace")
+    .map((i) => ({ ...base, id: `${i.name}@${i.origin}`, name: i.name, marketplace: i.origin ?? "", description: i.description, category: null, source: "local" }));
+  const skill = (name: string, description: string) => ({ kind: "skill" as const, name, description });
+  const samples: CatalogEntry[] = [
+    {
+      ...base,
+      id: "commit-coach@claude-plugins-official",
+      name: "commit-coach",
+      marketplace: "claude-plugins-official",
+      description: "Writes commit messages and pull request descriptions from your staged changes, in your repository's own style.",
+      category: "development",
+      author: "Anthropic",
+      version: "1.2.0",
+      page: "https://github.com/anthropics/claude-plugins-official",
+      source: "local",
+      contents: {
+        children: [
+          skill("commit-message", "Use when writing a commit message for staged changes."),
+          skill("pr-description", "Use when opening a pull request."),
+          { kind: "command", name: "commit", description: "Stage, describe and commit" },
+          { kind: "hook", name: "PreToolUse", description: null },
+        ],
+        cost: { total: 96, parts: [] },
+        risks: [
+          { kind: "hooks", files: ["hooks/hooks.json"], why: "" },
+          { kind: "scripts", files: ["hooks/check-staged.mjs"], why: "" },
+        ],
+      },
+    },
+    {
+      ...base,
+      id: "postgres-explorer@claude-plugins-official",
+      name: "postgres-explorer",
+      marketplace: "claude-plugins-official",
+      description: "Query and explain your Postgres databases through an MCP server.",
+      category: "database",
+      author: "Example Inc.",
+      source: "git-subdir",
+      from: "github.com/example/claude-plugins/plugins/postgres",
+      page: "https://example.com/postgres",
+    },
+    {
+      ...base,
+      id: "xcode-tools@claude-plugins-official",
+      name: "xcode-tools",
+      marketplace: "claude-plugins-official",
+      description: "Build, test and preview Apple platform apps.",
+      category: "development",
+      author: "Apple Inc.",
+      source: "command",
+      from: "xcrun agent plugin path --plugin-format claude",
+    },
+    {
+      ...base,
+      id: "release-notes@claude-code-skills",
+      name: "release-notes",
+      marketplace: "claude-code-skills",
+      description: "Turns merged pull requests into release notes.",
+      category: "productivity",
+      source: "local",
+      contents: { children: [skill("release-notes", "Use when drafting release notes from merged PRs.")], cost: { total: 18, parts: [] }, risks: [] },
+    },
+  ];
+  return [...installed, ...samples];
+}
+
 export const mockApi = {
   scan: async (): Promise<ScanResult> => {
     await wait(400);
@@ -228,7 +299,8 @@ export const mockApi = {
   runActions: async (requests: ActionRequest[]) => {
     stopped = false;
     requests.forEach((r, n) => {
-      const item = items.find((i) => i.id === r.itemId)!;
+      // A plugin to install isn't an item yet; its catalog entry stands in.
+      const item = items.find((i) => i.id === r.itemId) ?? { id: r.itemId, name: r.itemId.split("@")[0] };
       const base = { jobId: job++, itemId: item.id, itemName: item.name, action: r.action, line: null, message: null, confirm: null };
       const emit = (e: Partial<JobEvent>, ms: number) =>
         setTimeout(() => {
@@ -291,6 +363,14 @@ export const mockApi = {
         s(null, "blender", "uvx", null, "pending"),
       ],
     };
+  },
+  catalog: async (): Promise<CatalogEntry[]> => {
+    await wait(300);
+    return mockCatalog();
+  },
+  openCatalogPage: async (id: string) => {
+    const page = mockCatalog().find((e) => e.id === id)?.page;
+    if (page) window.open(page, "_blank", "noopener");
   },
   usage: async (): Promise<UsageReport> => {
     for (let read = 0; read <= 100; read += 20) {

@@ -65,9 +65,6 @@ export function DetailPanel({ item, overlay }: { item: Item; overlay: boolean })
   const mine = Object.values(jobs).filter((j) => j.itemId === item.id);
   const running = mine.some(isActive);
   const finished = mine.length - mine.filter(isActive).length;
-  const groups = (Object.keys(childMeta) as Child["kind"][])
-    .map((k) => ({ kind: k, list: item.children.filter((c) => c.kind === k) }))
-    .filter((g) => g.list.length);
 
   const attempt = (fn: () => Promise<void>) => {
     setError(null);
@@ -227,26 +224,35 @@ export function DetailPanel({ item, overlay }: { item: Item; overlay: boolean })
 
         {item.status !== "updateAvailable" && showsChangelog(item) && <ChangelogPanel item={item} />}
 
-        {groups.map(({ kind, list }) => {
-          const { label, icon: Icon } = childMeta[kind];
-          return (
-            <section key={kind} className="mb-5">
-              <h3 className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold tracking-wider text-muted uppercase">
-                <Icon aria-hidden className="size-3.5" />
-                {t(label)} <span className="font-mono">{list.length}</span>
-              </h3>
-              <ul className="divide-y divide-border rounded-md border border-border">
-                {list.map((c) => (
-                  <li key={c.name} className="px-3 py-2">
-                    <div className="font-mono text-xs font-medium">{c.name}</div>
-                    {c.description && <p className="mt-0.5 line-clamp-2 text-xs text-muted">{c.description}</p>}
-                  </li>
-                ))}
-              </ul>
-            </section>
-          );
-        })}
+        <ChildGroups items={item.children} />
       </div>
     </aside>
   );
+}
+
+/** A plugin's skills, commands, agents, MCP servers and hooks, one list per kind. */
+export function ChildGroups({ items }: { items: Child[] }) {
+  const t = useT();
+  const groups = (Object.keys(childMeta) as Child["kind"][])
+    .map((k) => ({ kind: k, list: items.filter((c) => c.kind === k) }))
+    .filter((g) => g.list.length);
+  return groups.map(({ kind, list }) => {
+    const { label, icon: Icon } = childMeta[kind];
+    return (
+      <section key={kind} className="mb-5">
+        <h3 className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold tracking-wider text-muted uppercase">
+          <Icon aria-hidden className="size-3.5" />
+          {t(label)} <span className="font-mono">{list.length}</span>
+        </h3>
+        <ul className="divide-y divide-border rounded-md border border-border">
+          {list.map((c) => (
+            <li key={c.name} className="px-3 py-2">
+              <div className="font-mono text-xs font-medium">{c.name}</div>
+              {c.description && <p className="mt-0.5 line-clamp-2 text-xs text-muted">{c.description}</p>}
+            </li>
+          ))}
+        </ul>
+      </section>
+    );
+  });
 }

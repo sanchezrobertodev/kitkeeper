@@ -6,6 +6,7 @@ import { check, type Update } from "@tauri-apps/plugin-updater";
 import type {
   ActionRequest,
   AppUpdate,
+  CatalogEntry,
   Changelog,
   CheckResult,
   DownloadProgress,
@@ -37,6 +38,9 @@ const tauriApi = {
   openProjectPage: (page: ProjectPage) => invoke<void>("open_project_page", { page }),
   /** Connects to every MCP server through `claude mcp list`; takes 30–60 s. */
   mcpStatus: () => invoke<McpReport>("mcp_status"),
+  /** Plugins your marketplaces list, from their catalogs on disk. */
+  catalog: () => invoke<CatalogEntry[]>("catalog"),
+  openCatalogPage: (id: string) => invoke<void>("open_catalog_page", { id }),
   /** Counts uses from local transcripts (only what was appended since the last run). */
   usage: () => invoke<UsageReport>("usage"),
   onUsageProgress: (cb: (p: UsageProgress) => void): Promise<UnlistenFn> =>

@@ -1,4 +1,5 @@
 mod actions;
+mod catalog;
 mod cost;
 mod health;
 mod mcp;
@@ -149,7 +150,11 @@ fn set_autostart(app: AppHandle, on: bool) -> Result<(), String> {
 #[tauri::command]
 async fn run_actions(app: AppHandle, state: State<'_, AppState>, requests: Vec<ActionRequest>) -> Result<(), String> {
     for req in requests {
-        let mut item = state.item(&req.item_id)?;
+        // A plugin to install isn't in the scan yet: its job item comes from the marketplace's catalog.
+        let mut item = match req.action {
+            actions::Action::Install => catalog::install_item(&req.item_id)?,
+            _ => state.item(&req.item_id)?,
+        };
         let job_id = state.next_job.fetch_add(1, Ordering::Relaxed);
         let event = JobEvent {
             job_id,
@@ -353,6 +358,22 @@ async fn usage(app: AppHandle, state: State<'_, AppState>) -> Result<usage::Usag
     .map_err(|e| e.to_string())?
 }
 
+/// The plugins your marketplaces list, from their catalogs on disk.
+#[tauri::command]
+async fn catalog() -> Result<Vec<catalog::Entry>, String> {
+    tauri::async_runtime::spawn_blocking(catalog::list)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// Opens a listed plugin's homepage or repository.
+#[tauri::command]
+fn open_catalog_page(app: AppHandle, id: String) -> Result<(), String> {
+    app.opener()
+        .open_url(catalog::page_for(&id)?, None::<&str>)
+        .map_err(|e| e.to_string())
+}
+
 /// Connects to every MCP server through `claude mcp list` (30–60 seconds).
 #[tauri::command]
 async fn mcp_status() -> Result<mcp::McpReport, String> {
@@ -552,6 +573,8 @@ pub fn run() {
             item_changelog,
             open_changelog_link,
             mcp_status,
+            catalog,
+            open_catalog_page,
             usage,
             item_readme,
             last_runs,

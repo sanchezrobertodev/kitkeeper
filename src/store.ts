@@ -17,15 +17,16 @@ import {
   type SortKey,
   type Theme,
 } from "./lib/prefs";
-import type { ActionRequest, Item, Job, JobEvent, McpReport, Settings, TraySummary, Usage, UsageProgress } from "./types";
+import type { ActionRequest, CatalogEntry, Item, Job, JobEvent, McpReport, Settings, TraySummary, Usage, UsageProgress } from "./types";
 
 export type Busy = "idle" | "scanning" | "checking";
-export type Screen = "overview" | "library" | "cleanup" | "mcp" | "settings";
+export type Screen = "overview" | "library" | "discover" | "cleanup" | "mcp" | "settings";
 export type SettingsSection = "general" | "appearance" | "updates" | "projects" | "about";
 
 export type Confirmation =
   | { type: "update"; items: Item[] }
   | { type: "uninstall"; items: Item[] }
+  | { type: "install"; entry: CatalogEntry }
   | { type: "command"; job: Job };
 
 interface State extends Prefs {
@@ -49,6 +50,11 @@ interface State extends Prefs {
   mcp: McpReport | null;
   mcpBusy: boolean;
   mcpError: string | null;
+  /** Plugins your marketplaces list; null until Discover first opens. */
+  catalog: CatalogEntry[] | null;
+  catalogError: string | null;
+  /** Discover's search, apart from the Library's. */
+  discoverQuery: string;
   restartNeeded: boolean;
   confirmation: Confirmation | null;
   settings: Settings;
@@ -62,6 +68,8 @@ interface State extends Prefs {
   stop: () => Promise<void>;
   loadUsage: () => Promise<void>;
   loadMcp: () => Promise<void>;
+  loadCatalog: () => Promise<void>;
+  setDiscoverQuery: (q: string) => void;
   /** Opens the Library with only these filters. */
   browse: (f: Partial<Filters>) => void;
   /** Opens one item's details in the Library, clearing filters so its row is visible. */
@@ -151,6 +159,9 @@ export const useStore = create<State>((set, get) => {
     mcp: null,
     mcpBusy: false,
     mcpError: null,
+    catalog: null,
+    catalogError: null,
+    discoverQuery: "",
     restartNeeded: false,
     confirmation: null,
     settings: { projects: [], autoCheck: true, checkInterval: "daily", closeToTray: true, notifications: true },
@@ -232,6 +243,15 @@ export const useStore = create<State>((set, get) => {
       }
     },
 
+    loadCatalog: async () => {
+      try {
+        set({ catalog: await api.catalog(), catalogError: null });
+      } catch (e) {
+        set({ catalogError: errorText(e) });
+      }
+    },
+    setDiscoverQuery: (discoverQuery) => set({ discoverQuery }),
+
     loadUsage: async () => {
       if (get().usageProgress) return;
       set({ usageProgress: { read: 0, total: 0 } });
@@ -307,7 +327,8 @@ export const useStore = create<State>((set, get) => {
             ? { ...job, logs: [...job.logs, e.line ?? ""].slice(-500) }
             : { ...job, state: e.state, message: e.message ?? job.message, confirm: e.confirm ?? job.confirm };
         const item = s.items.find((i) => i.id === e.itemId);
-        const restartNeeded = s.restartNeeded || (e.state === "success" && item?.kind === "plugin");
+        // A plugin being installed isn't in the scan yet.
+        const restartNeeded = s.restartNeeded || (e.state === "success" && (item?.kind === "plugin" || e.action === "install"));
         const confirmation =
           e.state === "needsConfirmation" && !s.confirmation ? ({ type: "command", job: next } as const) : s.confirmation;
         return { jobs: { ...s.jobs, [e.jobId]: next }, batchFrom, restartNeeded, confirmation };
