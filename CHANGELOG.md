@@ -6,6 +6,10 @@ Each version's section is also its GitHub release notes and the "What's new" tex
 
 ## [Unreleased]
 
+### Added
+
+- **Discover** in the left rail lists the plugins your marketplaces offer that you haven't installed. Search them, or filter by marketplace or category. Before anything installs, a review shows what the plugin would run without asking (hooks, MCP servers, scripts, allowed tools), its context cost and its skills, commands and agents. Plugins whose files come from elsewhere say so, since their contents aren't known until they're installed.
+
 ## [0.7.0] - 2026-11-17
 
 ### Added

@@ -89,7 +89,7 @@ export interface CheckResult {
   checkedAt: number;
 }
 
-export type Action = "update" | "enable" | "disable" | "uninstall" | "reinstall";
+export type Action = "update" | "enable" | "disable" | "uninstall" | "reinstall" | "install";
 
 export interface ActionRequest {
   itemId: string;
@@ -188,6 +188,28 @@ export interface Risk {
   /** Allowed tools: what the update adds and removes. */
   added?: string[];
   removed?: string[];
+}
+
+// Mirrors src-tauri/src/catalog.rs.
+
+/** A plugin listed in a marketplace you've added. */
+export interface CatalogEntry {
+  /** `name@marketplace`, also the install job's item id. */
+  id: string;
+  name: string;
+  marketplace: string;
+  description: string | null;
+  version: string | null;
+  category: string | null;
+  author: string | null;
+  /** Its homepage or repository (https). */
+  page: string | null;
+  /** local | github | url | git-subdir | npm | command */
+  source: string;
+  /** Where its files come from when they aren't in the marketplace copy. */
+  from: string | null;
+  /** From its files in the marketplace copy; null when they come from elsewhere. */
+  contents: { children: Child[]; cost: Cost | null; risks: Risk[] } | null;
 }
 
 // Mirrors src-tauri/src/mcp.rs.

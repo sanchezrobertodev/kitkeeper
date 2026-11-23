@@ -206,6 +206,7 @@ const actionLabel: Record<LastRun["action"], TKey> = {
   disable: "detail.action.disable",
   uninstall: "detail.uninstall",
   reinstall: "detail.reinstall",
+  install: "queue.action.install",
 };
 
 /** The last action's output, kept across restarts. `finished` changes when one of the item's jobs ends. */

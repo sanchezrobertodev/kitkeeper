@@ -1,4 +1,4 @@
-import { BrushCleaning, LayoutDashboard, LibraryBig, Monitor, Moon, Server, Settings, Sun } from "lucide-react";
+import { BrushCleaning, Compass, LayoutDashboard, LibraryBig, Monitor, Moon, Server, Settings, Sun } from "lucide-react";
 import { type TKey, useT } from "../i18n";
 import { cx } from "../lib/cx";
 import type { Theme } from "../lib/prefs";
@@ -8,6 +8,7 @@ import { AppUpdateRailButton } from "./AppUpdate";
 const screens: { id: Screen; label: TKey; icon: typeof LibraryBig }[] = [
   { id: "overview", label: "rail.overview", icon: LayoutDashboard },
   { id: "library", label: "rail.library", icon: LibraryBig },
+  { id: "discover", label: "rail.discover", icon: Compass },
   { id: "cleanup", label: "rail.cleanup", icon: BrushCleaning },
   { id: "mcp", label: "rail.mcp", icon: Server },
 ];

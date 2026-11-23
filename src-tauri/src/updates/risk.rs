@@ -239,7 +239,33 @@ fn split_tools(s: &str) -> Vec<String> {
 
 /// Risks between an installed folder and the folder it would be updated from, both on disk.
 pub fn between_folders(installed: &Path, latest: &Path) -> Vec<Risk> {
-    let (old, new) = (files(installed), files(latest));
+    between(&files(installed), &files(latest))
+}
+
+/// Risks in a plugin that isn't installed yet: every file in it counts as added, plus the hooks and
+/// MCP servers its marketplace `entry` declares itself (`strict: false`), listed as `marketplace.json`.
+pub fn in_folder(dir: &Path, entry: &serde_json::Value) -> Vec<Risk> {
+    let mut risks = between(&BTreeMap::new(), &files(dir));
+    for (key, kind) in [("hooks", RiskKind::Hooks), ("mcpServers", RiskKind::Mcp)] {
+        if entry.get(key).is_none_or(serde_json::Value::is_null) {
+            continue;
+        }
+        match risks.iter_mut().find(|r| r.kind == kind) {
+            Some(r) => r.files.push("marketplace.json".into()),
+            None => risks.push(Risk {
+                kind,
+                files: vec!["marketplace.json".into()],
+                why: why(kind).into(),
+                added: Vec::new(),
+                removed: Vec::new(),
+            }),
+        }
+    }
+    risks.sort_by_key(|r| r.kind);
+    risks
+}
+
+fn between(old: &BTreeMap<String, PathBuf>, new: &BTreeMap<String, PathBuf>) -> Vec<Risk> {
     let mut changed: Vec<String> = old
         .keys()
         .chain(new.keys())
@@ -257,7 +283,7 @@ pub fn between_folders(installed: &Path, latest: &Path) -> Vec<Risk> {
         .filter(|rel| matches!(file_name(rel).as_str(), "plugin.json" | "skill.md"))
         .map(String::as_str)
         .chain([PLUGIN_JSON])
-        .map(|rel| (rel.to_string(), (read(&old, rel), read(&new, rel))))
+        .map(|rel| (rel.to_string(), (read(old, rel), read(new, rel))))
         .collect();
     assess(&changed, &contents)
 }
@@ -389,5 +415,32 @@ mod tests {
         let r = between_folders(a.path(), b.path());
         assert_eq!(kinds(&r), [RiskKind::Hooks]);
         assert!(between_folders(a.path(), a.path()).is_empty());
+    }
+
+    #[test]
+    fn a_folder_not_installed_yet_counts_every_file() {
+        let dir = tempfile::tempdir().unwrap();
+        let write = |rel: &str, text: &str| {
+            let path = dir.path().join(rel);
+            std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+            std::fs::write(path, text).unwrap();
+        };
+        write("hooks/hooks.json", "{}");
+        write(
+            "skills/a/SKILL.md",
+            "---\nname: a\nallowed-tools: Bash(git:*), Read\n---\n",
+        );
+        write("README.md", "# a");
+        let r = in_folder(dir.path(), &serde_json::Value::Null);
+        assert_eq!(kinds(&r), [RiskKind::Hooks, RiskKind::AllowedTools]);
+        assert_eq!(r[1].added, ["Bash(git:*)", "Read"]);
+
+        // A strict: false entry can declare hooks and MCP servers that no file in the folder shows.
+        let entry =
+            serde_json::json!({ "hooks": "./hooks/hooks.json", "mcpServers": { "db": { "command": "db-mcp" } } });
+        let r = in_folder(dir.path(), &entry);
+        assert_eq!(kinds(&r), [RiskKind::Hooks, RiskKind::Mcp, RiskKind::AllowedTools]);
+        assert_eq!(r[0].files, ["hooks/hooks.json", "marketplace.json"]);
+        assert_eq!(r[1].files, ["marketplace.json"]);
     }
 }

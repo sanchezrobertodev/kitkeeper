@@ -20,8 +20,11 @@ const riskMeta: Record<Risk["kind"], { label: TKey; icon: typeof Webhook }> = {
   allowedTools: { label: "review.risk.allowedTools", icon: Wrench },
 };
 
-/** A flag with its reason and files, shown on hover or keyboard focus. Fixed position so the sheet's scroll area can't clip it. */
-function RiskChip({ risk }: { risk: Risk }) {
+/**
+ * A flag with its reason and files, shown on hover or keyboard focus. Fixed position so the sheet's scroll area can't clip it.
+ * Orange belongs to updates, so a plugin you're about to install gets the info tint.
+ */
+export function RiskChip({ risk, tone = "warn" }: { risk: Risk; tone?: "warn" | "info" }) {
   const t = useT();
   const id = useId();
   const btn = useRef<HTMLButtonElement>(null);
@@ -45,7 +48,10 @@ function RiskChip({ risk }: { risk: Risk }) {
         onFocus={show}
         onBlur={hide}
         onClick={() => (at ? hide() : show())}
-        className="inline-flex h-6 items-center gap-1 rounded-full border border-warn/35 bg-warn/12 px-2 text-xs font-medium text-warn"
+        className={cx(
+          "inline-flex h-6 items-center gap-1 rounded-full border px-2 text-xs font-medium",
+          tone === "warn" ? "border-warn/35 bg-warn/12 text-warn" : "border-info/30 bg-info/10 text-info",
+        )}
       >
         <Icon aria-hidden className="size-3.5" />
         {t(label)}
