@@ -114,7 +114,7 @@ fn local_contents(name: &str, location: &Path, rel: &str, entry: &Value) -> Opti
     Some(Contents {
         cost: cost::estimate(&item),
         children: item.children,
-        risks: risk::in_folder(&dir),
+        risks: risk::in_folder(&dir, entry),
     })
 }
 

@@ -242,9 +242,27 @@ pub fn between_folders(installed: &Path, latest: &Path) -> Vec<Risk> {
     between(&files(installed), &files(latest))
 }
 
-/// Risks in a plugin that isn't installed yet: every file in it counts as added.
-pub fn in_folder(dir: &Path) -> Vec<Risk> {
-    between(&BTreeMap::new(), &files(dir))
+/// Risks in a plugin that isn't installed yet: every file in it counts as added, plus the hooks and
+/// MCP servers its marketplace `entry` declares itself (`strict: false`), listed as `marketplace.json`.
+pub fn in_folder(dir: &Path, entry: &serde_json::Value) -> Vec<Risk> {
+    let mut risks = between(&BTreeMap::new(), &files(dir));
+    for (key, kind) in [("hooks", RiskKind::Hooks), ("mcpServers", RiskKind::Mcp)] {
+        if entry.get(key).is_none_or(serde_json::Value::is_null) {
+            continue;
+        }
+        match risks.iter_mut().find(|r| r.kind == kind) {
+            Some(r) => r.files.push("marketplace.json".into()),
+            None => risks.push(Risk {
+                kind,
+                files: vec!["marketplace.json".into()],
+                why: why(kind).into(),
+                added: Vec::new(),
+                removed: Vec::new(),
+            }),
+        }
+    }
+    risks.sort_by_key(|r| r.kind);
+    risks
 }
 
 fn between(old: &BTreeMap<String, PathBuf>, new: &BTreeMap<String, PathBuf>) -> Vec<Risk> {
@@ -413,8 +431,16 @@ mod tests {
             "---\nname: a\nallowed-tools: Bash(git:*), Read\n---\n",
         );
         write("README.md", "# a");
-        let r = in_folder(dir.path());
+        let r = in_folder(dir.path(), &serde_json::Value::Null);
         assert_eq!(kinds(&r), [RiskKind::Hooks, RiskKind::AllowedTools]);
         assert_eq!(r[1].added, ["Bash(git:*)", "Read"]);
+
+        // A strict: false entry can declare hooks and MCP servers that no file in the folder shows.
+        let entry =
+            serde_json::json!({ "hooks": "./hooks/hooks.json", "mcpServers": { "db": { "command": "db-mcp" } } });
+        let r = in_folder(dir.path(), &entry);
+        assert_eq!(kinds(&r), [RiskKind::Hooks, RiskKind::Mcp, RiskKind::AllowedTools]);
+        assert_eq!(r[0].files, ["hooks/hooks.json", "marketplace.json"]);
+        assert_eq!(r[1].files, ["marketplace.json"]);
     }
 }
