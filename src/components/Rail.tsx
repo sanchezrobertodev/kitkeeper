@@ -83,7 +83,15 @@ export function Rail() {
   const problems = mcp?.servers.filter((s) => s.state !== "connected").length;
 
   const nav = (id: Screen, icon: typeof LibraryBig, label: TKey, count?: number | null, tone?: keyof typeof pillCls) => (
-    <NavItem icon={icon} label={t(label)} count={count} tone={tone} on={current === id} onClick={() => setScreen(id)} />
+    // Library leaves the Updates view (only that filter on) for the full list; other filters stay as the user left them.
+    <NavItem
+      icon={icon}
+      label={t(label)}
+      count={count}
+      tone={tone}
+      on={current === id}
+      onClick={() => (id === "library" && onlyUpdates ? browse({}) : setScreen(id))}
+    />
   );
   const status =
     busy === "scanning"

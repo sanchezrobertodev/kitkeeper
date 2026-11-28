@@ -40,7 +40,8 @@ function Description({ text }: { text: string }) {
   }, [text, open]);
   return (
     <div className="mt-1.5">
-      <p ref={ref} className={cx("text-[13px] leading-relaxed text-muted", !open && "line-clamp-3")}>
+      {/* The header doesn't scroll, so an expanded description scrolls on its own and the buttons below stay in view. */}
+      <p ref={ref} className={cx("text-[13px] leading-relaxed text-muted", open ? "max-h-40 overflow-y-auto" : "line-clamp-3")}>
         {text}
       </p>
       {long && (
