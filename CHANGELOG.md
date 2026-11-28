@@ -6,6 +6,15 @@ Each version's section is also its GitHub release notes and the "What's new" tex
 
 ## [Unreleased]
 
+### Changed
+
+- A cleaner, flatter look. The default Workbench theme is now blue on light grey (or a dark slate), without the glow and frosted cards. Each screen has one main button.
+- The left sidebar is wider and labelled, with counts beside Library, Discover, Updates, Clean Up and MCP Servers. **Updates** opens the Library filtered to pending updates. The check status moved to the bottom of the sidebar.
+- The Overview shows four headline numbers (updates, context per session, uses and unused plugins), the **Context per session** and **Most used** charts side by side, and an **Issues** list with a button to fix each one.
+- The Library filters sit in one row above the list: All, Plugins or Skills, then **Status**, **Source** and **More filters** menus. Rows are a single line; hover a name for its description. Update one item from its details panel or its right-click menu.
+- The details panel puts the name, description and main button at the top, followed by the facts. **Open folder**, **Open repo** and **Uninstall** moved into its **…** menu.
+- Workbench's accent picker now offers violet instead of blue, since blue is its own.
+
 ## [0.8.0] - 2026-11-23
 
 ### Added

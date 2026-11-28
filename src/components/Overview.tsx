@@ -1,20 +1,19 @@
 import {
+  ArrowRight,
   BrushCleaning,
   CircleAlert,
   CircleArrowUp,
-  Download,
   FolderSymlink,
   Gauge,
-  LibraryBig,
   LoaderCircle,
   RefreshCw,
   Server,
   TrendingUp,
 } from "lucide-react";
-import { useId, type ReactNode } from "react";
+import { useId, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { locale, useT } from "../i18n";
 import { cx } from "../lib/cx";
-import { issueText, kindLabel, relativeTime } from "../lib/format";
+import { kindLabel, relativeTime } from "../lib/format";
 import { isUnused, loadsEverywhere, sessionTokens, shortCount } from "../lib/insights";
 import type { SortKey } from "../lib/prefs";
 import { updatable, useStore } from "../store";
@@ -24,41 +23,109 @@ import { mcpMeta } from "./McpServers";
 import { Sparkline } from "./Sparkline";
 
 const TOP = 8;
-/** Chart tiles take two columns once the grid has three. */
-const wide = "@min-[924px]:col-span-2";
 
-function Tile({
+const tones = {
+  danger: "text-danger bg-danger/10 border-danger/35",
+  info: "text-info bg-info/10 border-info/30",
+  muted: "text-muted bg-surface-2 border-border",
+};
+
+/** One headline number: what it counts, the number, a line of context and at most one way to act on it. */
+function Kpi({
   title,
   icon: Icon,
-  children,
-  actions,
-  className,
+  value,
+  tone,
+  note,
+  footer,
 }: {
   title: string;
   icon: typeof Gauge;
-  children: ReactNode;
-  actions?: ReactNode;
-  className?: string;
+  value: ReactNode;
+  tone?: string;
+  note: ReactNode;
+  footer?: ReactNode;
 }) {
   const id = useId();
   return (
-    <section aria-labelledby={id} className={cx(card, "flex flex-col p-4", className)}>
-      <h2 id={id} className="mb-3 flex items-center gap-2 text-[11px] font-semibold tracking-wider text-muted uppercase">
-        <Icon aria-hidden className="size-4" />
-        {title}
+    <section aria-labelledby={id} className={cx(card, "flex min-w-0 flex-col gap-1 p-4")}>
+      <h2 id={id} className="flex items-center gap-2 text-[13px] font-medium text-muted">
+        <Icon aria-hidden className="size-4 shrink-0" />
+        <span className="truncate">{title}</span>
       </h2>
-      <div className="flex-1">{children}</div>
-      {actions && <div className="mt-4 flex flex-wrap gap-2">{actions}</div>}
+      <p className={cx("text-[26px] leading-tight font-semibold tracking-tight tabular-nums", tone)}>{value}</p>
+      <p className="text-[13px] text-muted">{note}</p>
+      {footer && <div className="mt-auto pt-2">{footer}</div>}
     </section>
   );
 }
 
-function Big({ value, label, tone }: { value: ReactNode; label: string; tone?: string }) {
+/** A text link with an arrow: the quiet way to act on a card, so the screen keeps one primary button. */
+function LinkButton({ children, ...rest }: ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
-    <p>
-      <span className={cx("block text-3xl font-semibold tracking-tight tabular-nums", tone)}>{value}</span>
-      <span className="text-[13px] text-muted">{label}</span>
-    </p>
+    <button
+      type="button"
+      className="inline-flex items-center gap-1 rounded text-[13px] font-medium whitespace-nowrap text-accent hover:enabled:underline disabled:opacity-50"
+      {...rest}
+    >
+      {children}
+      <ArrowRight aria-hidden className="size-3.5" />
+    </button>
+  );
+}
+
+function Panel({
+  title,
+  note,
+  action,
+  flush,
+  children,
+}: {
+  title: string;
+  note?: ReactNode;
+  action?: ReactNode;
+  /** Children run edge to edge (a divided list) instead of sitting in the padding. */
+  flush?: boolean;
+  children: ReactNode;
+}) {
+  const id = useId();
+  return (
+    <section aria-labelledby={id} className={cx(card, "flex min-w-0 flex-col")}>
+      <header className="flex min-h-12 items-center gap-2 border-b border-border px-4 py-2">
+        <h2 id={id} className="text-sm font-semibold">
+          {title}
+        </h2>
+        {note != null && <span className="text-[13px] text-muted">{note}</span>}
+        {action && <div className="ml-auto">{action}</div>}
+      </header>
+      <div className={cx("flex-1", !flush && "p-3")}>{children}</div>
+    </section>
+  );
+}
+
+/** A row of the Issues card: a labelled chip (icon and text, never colour alone), what's wrong, and the fix. */
+function Issue({
+  icon: Icon,
+  label,
+  tone,
+  children,
+  action,
+}: {
+  icon: typeof Gauge;
+  label: string;
+  tone: keyof typeof tones;
+  children: ReactNode;
+  action: ReactNode;
+}) {
+  return (
+    <li className="grid grid-cols-[minmax(0,168px)_minmax(0,1fr)_auto] items-center gap-3 px-4 py-2.5 text-[13px]">
+      <span className={cx("inline-flex h-6 w-fit max-w-full items-center gap-1 rounded-full border px-2 text-xs font-medium whitespace-nowrap", tones[tone])}>
+        <Icon aria-hidden className="size-3.5 shrink-0" />
+        <span className="truncate">{label}</span>
+      </span>
+      <span className="min-w-0 font-medium">{children}</span>
+      {action}
+    </li>
   );
 }
 
@@ -80,7 +147,7 @@ function RankedBars({ label, rows }: { label: string; rows: Bar[] }) {
   const max = Math.max(1, ...rows.map((r) => r.value));
   const names = rows.map((r) => r.name);
   return (
-    <ol aria-label={label} className="mt-4 space-y-0.5">
+    <ol aria-label={label} className="space-y-0.5">
       {rows.map((r, i) => (
         <li key={r.id}>
           <button
@@ -176,58 +243,122 @@ export function Overview() {
   const moved = items.filter((i) => i.status === "moved").length;
   const removed = items.filter((i) => i.status === "removed").length;
   const problems = (mcp?.servers.filter((s) => s.state !== "connected") ?? []).sort((a, b) => mcpMeta[a.state].order - mcpMeta[b.state].order);
-  const plugins = items.filter((i) => i.kind === "plugin");
-  const off = plugins.filter((i) => i.enabled === false).length;
 
   const sortBy = (key: SortKey) => {
     useStore.setState({ sort: { key, desc: true } });
     browse({});
   };
-
-  return (
-    <div className="@container grid min-h-0 flex-1 grid-flow-row-dense auto-rows-min grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-3 overflow-y-auto px-5 pb-4">
-      <Tile
-        title={t("overview.updates")}
-        icon={CircleArrowUp}
-        actions={
-          pending.length ? (
-            <>
-              <Button variant="update" size="sm" onClick={() => confirm({ type: "update", items: pending })}>
-                <Download aria-hidden className="size-3.5" />
-                {t("overview.review", { count: pending.length })}
+  const counting = (
+    <span className="inline-flex items-center gap-1.5">
+      <LoaderCircle aria-hidden className="size-4 animate-spin" />
+      {progress?.total ? t("cleanup.countingProgress", { percent: Math.floor((progress.read / progress.total) * 100) }) : t("cleanup.counting")}
+    </span>
+  );
+  const issues = [
+    mcp
+      ? problems.length > 0 && (
+          <Issue
+            key="mcp"
+            icon={mcpMeta[problems[0].state].icon}
+            label={t("overview.mcp")}
+            tone={problems[0].state === "failed" ? "danger" : "info"}
+            action={
+              <Button size="sm" onClick={() => setScreen("mcp")}>
+                {t("overview.openMcp")}
               </Button>
-              <Button size="sm" onClick={() => browse({ statuses: ["updateAvailable"] })}>
-                {t("overview.showInLibrary")}
+            }
+          >
+            {problems.length} {t("overview.mcpAttention", { count: problems.length, total: mcp.servers.length })}
+          </Issue>
+        )
+      : (
+          <Issue
+            key="mcp"
+            icon={Server}
+            label={t("overview.mcp")}
+            tone="muted"
+            action={
+              <Button size="sm" disabled={mcpBusy} onClick={() => void loadMcp()}>
+                {mcpBusy ? <LoaderCircle aria-hidden className="size-3.5 animate-spin" /> : <RefreshCw aria-hidden className="size-3.5" />}
+                {mcpBusy ? t("mcp.checking") : t("mcp.check")}
               </Button>
-            </>
-          ) : (
-            <Button size="sm" disabled={busy !== "idle"} onClick={() => void checkUpdates()}>
-              <RefreshCw aria-hidden className={cx("size-3.5", busy === "checking" && "animate-spin")} />
-              {t("overview.checkNow")}
-            </Button>
-          )
-        }
-      >
-        <Big
-          value={pending.length || t("overview.none")}
-          tone={pending.length ? "text-warn" : undefined}
-          label={pending.length ? t("overview.pending", { count: pending.length }) : t("overview.upToDate")}
-        />
-        <p className="mt-1 text-xs text-muted">{checkedAt ? t("overview.checked", { time: relativeTime(checkedAt) }) : t("overview.notChecked")}</p>
-      </Tile>
-
-      <Tile
-        title={t("overview.context")}
-        icon={Gauge}
-        className={wide}
-        actions={
-          <Button size="sm" onClick={() => sortBy("cost")}>
-            {t("overview.sortByCost")}
+            }
+          >
+            <span className="font-normal text-muted">{mcpBusy ? t("overview.mcpConnecting") : t("overview.notChecked")}</span>
+          </Issue>
+        ),
+    withIssues.length > 0 && (
+      <Issue
+        key="health"
+        icon={CircleAlert}
+        label={t("overview.health")}
+        tone="danger"
+        action={
+          <Button size="sm" onClick={() => browse({ flags: ["issues"] })}>
+            {t("overview.showInLibrary")}
           </Button>
         }
       >
-        <Big value={`≈${shortCount(tokens)}`} label={t("overview.tokensLabel")} />
-        {heavy.length > 0 && (
+        {withIssues.length} {t("overview.withIssues", { count: withIssues.length })}
+      </Issue>
+    ),
+    moved + removed > 0 && (
+      <Issue
+        key="changed"
+        icon={FolderSymlink}
+        label={t("overview.changed")}
+        tone="info"
+        action={
+          <Button size="sm" onClick={() => setScreen("cleanup")}>
+            {t("overview.openCleanUp")}
+          </Button>
+        }
+      >
+        {t("overview.changedCounts", { moved, removed })}
+      </Issue>
+    ),
+  ].filter(Boolean);
+  // The "not checked yet" MCP row is an offer, not a problem, so it isn't counted.
+  const issueCount = issues.length - (mcp ? 0 : 1);
+
+  return (
+    <div className="@container flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-5 pb-4">
+      <div className="grid grid-cols-2 gap-4 @min-[760px]:grid-cols-4">
+        <Kpi
+          title={t("overview.updates")}
+          icon={CircleArrowUp}
+          value={pending.length || t("overview.none")}
+          tone={pending.length ? "text-warn" : undefined}
+          note={checkedAt ? t("overview.checked", { time: relativeTime(checkedAt) }) : t("overview.notChecked")}
+          footer={
+            pending.length ? (
+              <LinkButton onClick={() => confirm({ type: "update", items: pending })}>{t("overview.review", { count: pending.length })}</LinkButton>
+            ) : (
+              <LinkButton disabled={busy !== "idle"} onClick={() => void checkUpdates()}>
+                {t("overview.checkNow")}
+              </LinkButton>
+            )
+          }
+        />
+        <Kpi title={t("overview.context")} icon={Gauge} value={`≈${shortCount(tokens)}`} note={t("overview.tokensLabel")} />
+        <Kpi
+          title={t("overview.uses")}
+          icon={TrendingUp}
+          value={usage ? totalUses.toLocaleString(locale()) : "…"}
+          note={usage ? t("overview.usesLabel", { count: totalUses }) : counting}
+          footer={usage && <Sparkline daily={daily} className="h-6 w-full" />}
+        />
+        <Kpi
+          title={t("cleanup.unused")}
+          icon={BrushCleaning}
+          value={unused ? unused.length : "…"}
+          note={unused ? (unusedTokens > 0 ? t("overview.unusedFrees", { tokens: shortCount(unusedTokens) }) : t("overview.unused", { count: unused.length })) : counting}
+          footer={unused && unused.length > 0 && <LinkButton onClick={() => setScreen("cleanup")}>{t("overview.openCleanUp")}</LinkButton>}
+        />
+      </div>
+
+      <div className="grid gap-4 @min-[860px]:grid-cols-[3fr_2fr]">
+        <Panel title={t("overview.context")} action={<LinkButton onClick={() => sortBy("cost")}>{t("overview.sortByCost")}</LinkButton>}>
           <RankedBars
             label={t("overview.heaviest")}
             rows={heavy.map((i) => ({
@@ -239,174 +370,36 @@ export function Overview() {
               detail: t("overview.share", { percent: Math.round(((i.cost?.total ?? 0) / Math.max(1, tokens)) * 100) }),
             }))}
           />
-        )}
-      </Tile>
-
-      <Tile
-        title={t("overview.mostUsed")}
-        icon={TrendingUp}
-        className={wide}
-        actions={
-          used.length > 0 && (
-            <Button size="sm" onClick={() => sortBy("uses")}>
-              {t("overview.sortByUses")}
-            </Button>
-          )
-        }
-      >
-        {usage ? (
-          <>
-            <div className="flex items-end justify-between gap-4">
-              <Big value={totalUses.toLocaleString(locale())} label={t("overview.usesLabel", { count: totalUses })} />
-              <Sparkline daily={daily} className="mb-1 h-10 w-40 shrink-0" />
-            </div>
-            {used.length > 0 && (
-              <RankedBars
-                label={t("overview.topUsed")}
-                rows={used.map((i) => ({
-                  id: i.id,
-                  name: i.name,
-                  kind: i.kind,
-                  value: usage[i.id].uses,
-                  text: String(usage[i.id].uses),
-                  detail: t("detail.lastUsed", { time: relativeTime(usage[i.id].lastUsed) }),
-                }))}
-              />
-            )}
-          </>
-        ) : (
-          <p className="flex items-center gap-1.5 text-[13px] text-muted">
-            <LoaderCircle aria-hidden className="size-4 animate-spin" />
-            {progress?.total ? t("cleanup.countingProgress", { percent: Math.floor((progress.read / progress.total) * 100) }) : t("cleanup.counting")}
-          </p>
-        )}
-      </Tile>
-
-      <Tile
-        title={t("cleanup.unused")}
-        icon={BrushCleaning}
-        actions={
-          unused && (
-            <Button size="sm" onClick={() => setScreen("cleanup")}>
-              {t("overview.openCleanUp")}
-            </Button>
-          )
-        }
-      >
-        {unused ? (
-          <>
-            <Big value={unused.length} label={t("overview.unused", { count: unused.length })} />
-            {unusedTokens > 0 && <p className="mt-1 text-xs text-muted">{t("overview.unusedFrees", { tokens: shortCount(unusedTokens) })}</p>}
-          </>
-        ) : (
-          <p className="flex items-center gap-1.5 text-[13px] text-muted">
-            <LoaderCircle aria-hidden className="size-4 animate-spin" />
-            {progress?.total ? t("cleanup.countingProgress", { percent: Math.floor((progress.read / progress.total) * 100) }) : t("cleanup.counting")}
-          </p>
-        )}
-      </Tile>
-
-      <Tile
-        title={t("overview.mcp")}
-        icon={Server}
-        actions={
-          mcp ? (
-            <Button size="sm" onClick={() => setScreen("mcp")}>
-              {t("overview.openMcp")}
-            </Button>
-          ) : (
-            <Button size="sm" disabled={mcpBusy} onClick={() => void loadMcp()}>
-              {mcpBusy ? <LoaderCircle aria-hidden className="size-3.5 animate-spin" /> : <RefreshCw aria-hidden className="size-3.5" />}
-              {mcpBusy ? t("mcp.checking") : t("mcp.check")}
-            </Button>
-          )
-        }
-      >
-        {mcp ? (
-          <>
-            <Big
-              value={problems.length ? problems.length : mcp.servers.length}
-              tone={problems.length ? "text-danger" : undefined}
-              label={
-                problems.length
-                  ? t("overview.mcpAttention", { count: problems.length, total: mcp.servers.length })
-                  : t("overview.mcpConnected", { count: mcp.servers.length })
-              }
+        </Panel>
+        <Panel
+          title={t("overview.mostUsed")}
+          action={used.length > 0 && <LinkButton onClick={() => sortBy("uses")}>{t("overview.sortByUses")}</LinkButton>}
+        >
+          {usage ? (
+            <RankedBars
+              label={t("overview.topUsed")}
+              rows={used.map((i) => ({
+                id: i.id,
+                name: i.name,
+                kind: i.kind,
+                value: usage[i.id].uses,
+                text: String(usage[i.id].uses),
+                detail: t("detail.lastUsed", { time: relativeTime(usage[i.id].lastUsed) }),
+              }))}
             />
-            {problems.length > 0 && (
-              <ul className="mt-2 space-y-1 text-xs">
-                {problems.slice(0, 3).map((s) => (
-                  <li key={`${s.plugin}:${s.name}`} className="flex gap-2">
-                    <span className="min-w-0 flex-1 truncate font-mono">{s.name}</span>
-                    <span className="shrink-0 text-muted">{t(mcpMeta[s.state].label)}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </>
+          ) : (
+            <p className="px-1.5 text-[13px] text-muted">{counting}</p>
+          )}
+        </Panel>
+      </div>
+
+      <Panel title={t("overview.issues")} note={issueCount > 0 ? issueCount : null} flush>
+        {issues.length ? (
+          <ul className="divide-y divide-border">{issues}</ul>
         ) : (
-          <p className="text-[13px] text-muted">
-            {mcpBusy
-              ? t("overview.mcpConnecting")
-              : t("overview.mcpNotChecked")}
-          </p>
+          <p className="px-4 py-3 text-[13px] text-muted">{t("overview.noIssues")}</p>
         )}
-      </Tile>
-
-      <Tile
-        title={t("overview.health")}
-        icon={CircleAlert}
-        actions={
-          withIssues.length > 0 && (
-            <Button size="sm" onClick={() => browse({ flags: ["issues"] })}>
-              {t("overview.showInLibrary")}
-            </Button>
-          )
-        }
-      >
-        <Big
-          value={withIssues.length || t("overview.none")}
-          tone={withIssues.length ? "text-danger" : undefined}
-          label={withIssues.length ? t("overview.withIssues", { count: withIssues.length }) : t("overview.noIssues")}
-        />
-        {withIssues.length > 0 && <p className="mt-1 line-clamp-2 text-xs text-muted">{issueText(withIssues[0].issues[0])}</p>}
-      </Tile>
-
-      <Tile
-        title={t("overview.changed")}
-        icon={FolderSymlink}
-        actions={
-          moved + removed > 0 && (
-            <Button size="sm" onClick={() => setScreen("cleanup")}>
-              {t("overview.openCleanUp")}
-            </Button>
-          )
-        }
-      >
-        <Big
-          value={moved + removed || t("overview.none")}
-          label={moved + removed ? t("overview.changedCounts", { moved, removed }) : t("overview.noChanges")}
-        />
-      </Tile>
-
-      <Tile
-        title={t("rail.library")}
-        icon={LibraryBig}
-        actions={
-          <Button size="sm" onClick={() => browse({})}>
-            {t("overview.openLibrary")}
-          </Button>
-        }
-      >
-        <dl className="grid grid-cols-[1fr_auto] gap-y-1 text-[13px]">
-          <dt className="text-muted">{t("overview.plugins")}</dt>
-          <dd className="text-right font-mono tabular-nums">{plugins.length}</dd>
-          <dt className="text-muted">{t("overview.turnedOff")}</dt>
-          <dd className="text-right font-mono tabular-nums">{off}</dd>
-          <dt className="text-muted">{t("overview.skills")}</dt>
-          <dd className="text-right font-mono tabular-nums">{items.length - plugins.length}</dd>
-        </dl>
-      </Tile>
+      </Panel>
     </div>
   );
 }

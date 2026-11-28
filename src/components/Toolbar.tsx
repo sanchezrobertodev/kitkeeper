@@ -1,7 +1,7 @@
 import { Download, LoaderCircle, RefreshCw, Search, X } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { type TKey, useT } from "../i18n";
-import { modKey, relativeTime } from "../lib/format";
+import { modKey } from "../lib/format";
 import { type Screen, updatable, useStore } from "../store";
 import { Button, IconButton, Kbd } from "./ui";
 
@@ -22,14 +22,16 @@ export function Toolbar() {
   const query = useStore((s) => (discover ? s.discoverQuery : s.query));
   const setQuery = useStore((s) => (discover ? s.setDiscoverQuery : s.setQuery));
   const busy = useStore((s) => s.busy);
-  const checkedAt = useStore((s) => s.checkedAt);
   const items = useStore((s) => s.items);
+  const detailOpen = useStore((s) => s.detailOpen);
   const checkUpdates = useStore((s) => s.checkUpdates);
   const refresh = useStore((s) => s.refresh);
   const confirm = useStore((s) => s.confirm);
   const search = useRef<HTMLInputElement>(null);
 
   const toUpdate = updatable(items);
+  // One primary action per screen: elsewhere the screen has its own (Install, Turn off, a selected item's Update).
+  const primary = screen === "overview" || (screen === "library" && !detailOpen);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -47,23 +49,14 @@ export function Toolbar() {
     return () => window.removeEventListener("keydown", onKey);
   }, [refresh]);
 
-  const status =
-    busy === "scanning"
-      ? t("toolbar.scanning")
-      : busy === "checking"
-        ? t("toolbar.checking")
-        : checkedAt
-          ? t("toolbar.checked", { time: relativeTime(checkedAt) })
-          : t("toolbar.notChecked");
-
   return (
-    <header className="flex h-16 shrink-0 items-center gap-3 px-5">
-      <h1 className="shrink-0 text-lg font-semibold tracking-tight">{t(titles[screen])}</h1>
-      <span className="shrink-0 text-xs whitespace-nowrap text-muted max-lg:sr-only" aria-live="polite">
-        {status}
-      </span>
+    <header className="mb-4 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-surface px-5">
+      <h1 className="shrink-0 text-base font-semibold tracking-tight">{t(titles[screen])}</h1>
+      {screen === "overview" && items.length > 0 && (
+        <span className="truncate text-[13px] text-muted max-lg:sr-only">{t("toolbar.overviewSub", { count: items.length })}</span>
+      )}
 
-      <div className="relative ml-auto w-full max-w-sm min-w-0">
+      <div className="relative ml-auto w-full max-w-xs min-w-0">
         <Search aria-hidden className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted" />
         <input
           ref={search}
@@ -75,7 +68,7 @@ export function Toolbar() {
           }}
           placeholder={t(discover ? "toolbar.searchDiscover" : "toolbar.searchPlaceholder")}
           aria-label={t("toolbar.search")}
-          className="h-9 w-full rounded-lg border border-border bg-surface pr-16 pl-9 text-sm shadow-card placeholder:text-muted focus-visible:outline-2 [&::-webkit-search-cancel-button]:appearance-none"
+          className="h-9 w-full rounded-lg border border-border-strong bg-surface pr-16 pl-9 text-sm placeholder:text-muted focus-visible:outline-2 [&::-webkit-search-cancel-button]:appearance-none"
         />
         <div className="absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-1">
           {query ? (
@@ -96,7 +89,7 @@ export function Toolbar() {
         )}
         {t("toolbar.check")}
       </Button>
-      <Button variant="update" disabled={!toUpdate.length} onClick={() => confirm({ type: "update", items: toUpdate })}>
+      <Button variant={primary ? "update" : "secondary"} disabled={!toUpdate.length} onClick={() => confirm({ type: "update", items: toUpdate })}>
         <Download aria-hidden className="size-4" />
         {toUpdate.length
           ? t("toolbar.review", { count: toUpdate.length })

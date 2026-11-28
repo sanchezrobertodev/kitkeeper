@@ -10,8 +10,8 @@ export type Palette = (typeof palettes)[number];
 /** Accent colours in index.css that replace a palette's own accent; "theme" keeps it. */
 export const accents = ["theme", "violet", "blue", "teal", "green", "pink"] as const;
 export type Accent = (typeof accents)[number];
-/** The accent a palette already has, left out of its picker. Workbench differs from Violet only in the button gradient. */
-export const ownAccent: Partial<Record<Palette, Accent>> = { workbench: "violet" };
+/** The accent a palette already has, left out of its picker: Workbench's blue is Blue's twin. */
+export const ownAccent: Partial<Record<Palette, Accent>> = { workbench: "blue" };
 export type SortKey = "name" | "kind" | "source" | "version" | "status" | "updated" | "installed" | "cost" | "uses" | "lastUsed";
 /** Library columns you can show or hide (Columns menu); Name and Status always show. */
 export const listColumns = ["type", "source", "version", "cost", "uses", "lastUsed", "updated", "installed"] as const;

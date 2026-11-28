@@ -15,7 +15,7 @@ import { Button, card, Checkbox, IconButton, KindIcon, StatusBadge, Switch } fro
 /** Columns left of Status, then right of it, in grid order. */
 const before: ListColumn[] = ["type", "source", "version"];
 const after: ListColumn[] = ["cost", "uses", "lastUsed", "updated", "installed"];
-const width: Record<ListColumn, number> = { type: 80, source: 136, version: 172, cost: 72, uses: 112, lastUsed: 96, updated: 104, installed: 96 };
+const width: Record<ListColumn, number> = { type: 80, source: 136, version: 160, cost: 72, uses: 112, lastUsed: 96, updated: 104, installed: 96 };
 /** When the columns you picked don't all fit, they drop from the end of this list. */
 const priority: ListColumn[] = ["version", "uses", "type", "lastUsed", "source", "cost", "updated", "installed"];
 const colLabel: Record<ListColumn, TKey> = {
@@ -39,9 +39,9 @@ const colSort: Record<ListColumn, SortKey> = {
   installed: "installed",
 };
 const GAP = 12;
-const ROW_HEIGHT = 52;
-// Checkbox, name at its minimum, status and actions, plus the row's side padding.
-const BASE = 40 + 190 + 152 + 76 + 3 * GAP + 32;
+const ROW_HEIGHT = 44;
+// Checkbox, name at its minimum, status and the switch, plus the row's side padding.
+const BASE = 40 + 160 + 152 + 48 + 3 * GAP + 32;
 
 /** The picked columns that fit the list's width. */
 function useColumns(ref: React.RefObject<HTMLElement | null>, picked: ListColumn[]): Set<ListColumn> {
@@ -66,7 +66,7 @@ function useColumns(ref: React.RefObject<HTMLElement | null>, picked: ListColumn
 
 function template(cols: Set<ListColumn>) {
   const px = (list: ListColumn[]) => list.filter((c) => cols.has(c)).map((c) => `${width[c]}px`);
-  return ["40px", "minmax(190px,1fr)", ...px(before), "152px", ...px(after), "76px"].join(" ");
+  return ["40px", "minmax(160px,1fr)", ...px(before), "152px", ...px(after), "48px"].join(" ");
 }
 
 function costTitle(item: Item) {
@@ -86,7 +86,7 @@ function SortHeader({ label, k, className }: { label: string; k: SortKey; classN
         type="button"
         onClick={() => setSort(k)}
         className={cx(
-          "-mx-1.5 inline-flex h-7 items-center gap-1 rounded px-1.5 text-xs font-semibold tracking-wide uppercase transition-colors hover:text-fg",
+          "-mx-1.5 inline-flex h-7 items-center gap-1 rounded px-1.5 text-xs font-medium transition-colors hover:text-fg",
           on ? "text-fg" : "text-muted",
         )}
       >
@@ -231,44 +231,19 @@ function ColumnsButton({ shown }: { shown: Set<ListColumn> }) {
   );
 }
 
-/** The Enabled switch and an Update button, so the common actions don't need the details panel. */
+/** The Enabled switch. Updating is in the details, the row menu and the bulk bar, so the Status chip is the row's one orange. */
 function RowActions({ item, busy }: { item: Item; busy: boolean }) {
   const t = useT();
   const run = useStore((s) => s.run);
-  const confirm = useStore((s) => s.confirm);
+  if (!canToggle(item)) return null;
   return (
-    // Two fixed slots, so download icons and switches line up down the list whichever ones a row has.
-    <div className="grid grid-cols-[32px_36px] items-center gap-2">
-      <div className="flex">
-        {updatable([item]).length > 0 && (
-          <button
-            type="button"
-            tabIndex={-1}
-            aria-label={t("list.update", { name: item.name })}
-            title={t("list.update", { name: item.name })}
-            disabled={busy}
-            onClick={(e) => {
-              e.stopPropagation();
-              confirm({ type: "update", items: [item] });
-            }}
-            className="inline-flex size-8 items-center justify-center rounded-lg bg-warn/12 text-warn transition-colors duration-150 hover:enabled:bg-warn/22 disabled:opacity-50"
-          >
-            <Download aria-hidden className="size-4" />
-          </button>
-        )}
-      </div>
-      <div className="flex">
-        {canToggle(item) && (
-          <Switch
-            tabIndex={-1}
-            label={t("list.enabled", { name: item.name })}
-            checked={item.enabled !== false}
-            disabled={busy}
-            onChange={() => void run([{ itemId: item.id, action: item.enabled === false ? "enable" : "disable" }])}
-          />
-        )}
-      </div>
-    </div>
+    <Switch
+      tabIndex={-1}
+      label={t("list.enabled", { name: item.name })}
+      checked={item.enabled !== false}
+      disabled={busy}
+      onChange={() => void run([{ itemId: item.id, action: item.enabled === false ? "enable" : "disable" }])}
+    />
   );
 }
 
@@ -334,11 +309,10 @@ function SkeletonRows() {
   return (
     <div aria-hidden className="divide-y divide-border">
       {Array.from({ length: 10 }, (_, i) => (
-        <div key={i} className="flex h-[52px] items-center gap-4 px-4">
+        <div key={i} className="flex h-11 items-center gap-4 px-4">
           <div className="size-4 rounded bg-surface-2" />
-          <div className="flex-1 space-y-1.5">
-            <div className="h-3 w-40 animate-pulse rounded bg-surface-2" />
-            <div className="h-2.5 w-72 animate-pulse rounded bg-surface-2" />
+          <div className="flex-1">
+            <div className="h-3 w-48 animate-pulse rounded bg-surface-2" />
           </div>
           <div className="h-5 w-24 animate-pulse rounded-full bg-surface-2" />
         </div>
@@ -473,7 +447,7 @@ export function ItemList({ rows }: { rows: Item[] }) {
         <div
           role="row"
           aria-rowindex={1}
-          className="grid h-10 shrink-0 items-center gap-3 border-b border-border bg-surface px-4"
+          className="grid h-10 shrink-0 items-center gap-3 border-b border-border bg-surface-2 px-4"
           style={{ gridTemplateColumns: grid }}
         >
           <div role="columnheader" className="flex items-center">
@@ -538,7 +512,7 @@ export function ItemList({ rows }: { rows: Item[] }) {
                     }}
                     className={cx(
                       "absolute inset-x-0 grid cursor-pointer items-center gap-3 border-b border-border px-4 transition-colors duration-100",
-                      isCurrent ? "bg-surface-2 shadow-[inset_3px_0_0_var(--accent)]" : isSelected ? "bg-accent/6" : "hover:bg-surface-hover",
+                      isCurrent ? "bg-nav-active" : isSelected ? "bg-accent/6" : "hover:bg-surface-hover",
                     )}
                     style={{ height: ROW_HEIGHT, transform: `translateY(${v.start}px)`, gridTemplateColumns: grid }}
                   >
@@ -548,7 +522,9 @@ export function ItemList({ rows }: { rows: Item[] }) {
                     <div role="gridcell" className="min-w-0">
                       <div className="flex items-center gap-2">
                         <KindIcon kind={item.kind} className="size-4" />
-                        <span className="truncate font-medium">{item.name}</span>
+                        <span className="truncate font-medium" title={item.description ?? undefined}>
+                          {item.name}
+                        </span>
                         {item.enabled === false && (
                           <span className="rounded border border-border-strong px-1.5 text-[11px] text-muted">{t("list.disabled")}</span>
                         )}
@@ -571,7 +547,6 @@ export function ItemList({ rows }: { rows: Item[] }) {
                         )}
                         {!cols.has("type") && <span className="sr-only">{kindLabel[item.kind]}</span>}
                       </div>
-                      <p className="truncate pl-6 text-xs text-muted">{item.description ?? t("list.noDescription")}</p>
                     </div>
                     {before
                       .filter((c) => cols.has(c))

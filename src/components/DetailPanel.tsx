@@ -1,13 +1,13 @@
-import { Bot, Copy, Download, ExternalLink, FolderOpen, Hammer, Info, Plug, Power, PowerOff, RotateCcw, ScrollText, SquareTerminal, Trash2, X } from "lucide-react";
-import { useLayoutEffect, useRef, useState } from "react";
-import { api, errorText } from "../api";
+import { Bot, Copy, Download, Ellipsis, Hammer, Info, Plug, Power, PowerOff, RotateCcw, ScrollText, SquareTerminal, X } from "lucide-react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { type TKey, useT } from "../i18n";
 import { showsChangelog } from "../lib/changelog";
 import { cx } from "../lib/cx";
-import { canReinstall, canToggle, canUninstall, canUpdate, fullDate, kindLabel, sourceHelp, sourceLabel } from "../lib/format";
+import { canReinstall, canToggle, canUpdate, fullDate, kindLabel, sourceHelp, sourceLabel } from "../lib/format";
 import { isActive, useStore } from "../store";
 import type { Child, Item } from "../types";
 import { ChangelogPanel } from "./Changelog";
+import { ContextMenu, type MenuTarget } from "./ContextMenu";
 import { CostSection, IssueList, LastRunSection, ReadmeSection, UpstreamNote, UsageSection } from "./DetailSections";
 import { Button, card, IconButton, KindIcon, StatusBadge } from "./ui";
 
@@ -39,12 +39,13 @@ function Description({ text }: { text: string }) {
     if (el && !open) setLong(el.scrollHeight > el.clientHeight + 1);
   }, [text, open]);
   return (
-    <div className="mb-5">
-      <p ref={ref} className={cx("text-[13px] leading-relaxed", !open && "line-clamp-4")}>
+    <div className="mt-1.5">
+      {/* The header doesn't scroll, so an expanded description scrolls on its own and the buttons below stay in view. */}
+      <p ref={ref} className={cx("text-[13px] leading-relaxed text-muted", open ? "max-h-40 overflow-y-auto" : "line-clamp-3")}>
         {text}
       </p>
       {long && (
-        <Button size="sm" variant="ghost" className="mt-1 -ml-2.5 text-muted" aria-expanded={open} onClick={() => setOpen(!open)}>
+        <Button size="sm" variant="ghost" className="-ml-2.5 text-muted" aria-expanded={open} onClick={() => setOpen(!open)}>
           {open ? t("detail.showLess") : t("detail.showMore")}
         </Button>
       )}
@@ -61,15 +62,13 @@ export function DetailPanel({ item, overlay }: { item: Item; overlay: boolean })
   const jobs = useStore((s) => s.jobs);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [menu, setMenu] = useState<MenuTarget | null>(null);
+  const closeMenu = useCallback(() => setMenu(null), []);
 
   const mine = Object.values(jobs).filter((j) => j.itemId === item.id);
   const running = mine.some(isActive);
   const finished = mine.length - mine.filter(isActive).length;
-
-  const attempt = (fn: () => Promise<void>) => {
-    setError(null);
-    fn().catch((e) => setError(errorText(e)));
-  };
+  const update = item.status === "updateAvailable" && canUpdate(item);
 
   const copyPath = async () => {
     if (!item.path) return;
@@ -86,25 +85,60 @@ export function DetailPanel({ item, overlay }: { item: Item; overlay: boolean })
     <aside
       aria-label={t("detail.label", { name: item.name })}
       className={cx(
-        "flex w-[380px] shrink-0 flex-col overflow-hidden",
+        "flex w-[344px] shrink-0 flex-col overflow-hidden",
         card,
-        overlay && "absolute top-0 right-5 bottom-4 z-30 shadow-2xl",
+        overlay && "absolute inset-y-0 right-0 z-30 shadow-2xl",
       )}
     >
-      <div className="flex items-start gap-3 border-b border-border px-5 py-4">
-        <KindIcon kind={item.kind} className="mt-1 size-5" />
-        <div className="min-w-0 flex-1">
-          <h2 className="truncate text-base font-semibold" title={item.name}>
+      <div className="border-b border-border px-5 py-4">
+        <div className="flex items-start gap-3">
+          <KindIcon kind={item.kind} className="mt-1 size-5" />
+          <h2 className="min-w-0 flex-1 truncate text-base font-semibold" title={item.name}>
             {item.name}
           </h2>
-          <div className="mt-1.5 flex flex-wrap items-center gap-2">
-            <StatusBadge status={item.status} checking={busy === "checking"} />
-            {item.enabled === false && <span className="text-xs text-muted">{t("detail.disabled")}</span>}
-          </div>
+          <IconButton label={t("detail.close")} onClick={closeDetail} className="-mt-1.5 -mr-2">
+            <X className="size-4" />
+          </IconButton>
         </div>
-        <IconButton label={t("detail.close")} onClick={closeDetail} className="-mt-1 -mr-2">
-          <X className="size-4" />
-        </IconButton>
+        {item.description && <Description key={item.id} text={item.description} />}
+        <div className="mt-3 flex gap-2">
+          {update ? (
+            <Button variant="update" className="flex-1" disabled={running} onClick={() => confirm({ type: "update", items: [item] })}>
+              <Download aria-hidden className="size-4" />
+              {t("detail.updateTo", { version: item.latest ?? t("detail.latestVersion") })}
+            </Button>
+          ) : canReinstall(item) ? (
+            <Button variant="primary" className="flex-1" disabled={running} onClick={() => void run([{ itemId: item.id, action: "reinstall" }])}>
+              <RotateCcw aria-hidden className="size-4" />
+              {t("detail.reinstall")}
+            </Button>
+          ) : (
+            canUpdate(item) && (
+              <Button disabled={running} onClick={() => confirm({ type: "update", items: [item] })}>
+                <Download aria-hidden className="size-4" />
+                {t("detail.update")}
+              </Button>
+            )
+          )}
+          {canToggle(item) && (
+            <Button disabled={running} onClick={() => void run([{ itemId: item.id, action: item.enabled ? "disable" : "enable" }])}>
+              {item.enabled ? <PowerOff aria-hidden className="size-4" /> : <Power aria-hidden className="size-4" />}
+              {item.enabled ? t("detail.disable") : t("detail.enable")}
+            </Button>
+          )}
+          <IconButton
+            label={t("menu.itemActions", { name: item.name })}
+            aria-haspopup="menu"
+            aria-expanded={!!menu}
+            className="border border-border-strong"
+            onClick={(e) => {
+              const r = e.currentTarget.getBoundingClientRect();
+              setMenu(menu ? null : { x: r.right - 192, y: r.bottom + 4, items: [item] });
+            }}
+          >
+            <Ellipsis className="size-4" />
+          </IconButton>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto px-5 py-4">
@@ -113,63 +147,45 @@ export function DetailPanel({ item, overlay }: { item: Item; overlay: boolean })
         )}
         <UpstreamNote item={item} onError={setError} />
 
-        <div className="mb-5 flex flex-wrap gap-2">
-          {canUpdate(item) && (
-            <Button
-              size="sm"
-              variant={item.status === "updateAvailable" ? "update" : "secondary"}
-              disabled={running}
-              onClick={() => confirm({ type: "update", items: [item] })}
-            >
-              <Download aria-hidden className="size-3.5" />
-              {item.status === "updateAvailable" ? t("detail.updateTo", { version: item.latest ?? t("detail.latestVersion") }) : t("detail.update")}
-            </Button>
-          )}
-          {canReinstall(item) && (
-            <Button size="sm" variant="primary" disabled={running} onClick={() => void run([{ itemId: item.id, action: "reinstall" }])}>
-              <RotateCcw aria-hidden className="size-3.5" />
-              {t("detail.reinstall")}
-            </Button>
-          )}
-          {canToggle(item) && (
-            <Button
-              size="sm"
-              disabled={running}
-              onClick={() => void run([{ itemId: item.id, action: item.enabled ? "disable" : "enable" }])}
-            >
-              {item.enabled ? <PowerOff aria-hidden className="size-3.5" /> : <Power aria-hidden className="size-3.5" />}
-              {item.enabled ? t("detail.disable") : t("detail.enable")}
-            </Button>
-          )}
-          {item.path && (
-            <Button size="sm" onClick={() => attempt(() => api.openFolder(item.id))}>
-              <FolderOpen aria-hidden className="size-3.5" />
-              {t("detail.openFolder")}
-            </Button>
-          )}
-          {item.repoUrl && (
-            <Button size="sm" onClick={() => attempt(() => api.openRepo(item.id))}>
-              <ExternalLink aria-hidden className="size-3.5" />
-              {t("detail.repo")}
-            </Button>
-          )}
-          {canUninstall(item) && (
-            <Button size="sm" variant="danger" disabled={running} onClick={() => confirm({ type: "uninstall", items: [item] })}>
-              <Trash2 aria-hidden className="size-3.5" />
-              {t("detail.uninstall")}
-            </Button>
-          )}
-        </div>
         {error && (
           <p role="alert" className="mb-4 rounded-md border border-danger/40 bg-danger/10 px-3 py-2 text-[13px] text-danger">
             {error}
           </p>
         )}
 
+        <dl className="mb-6 grid grid-cols-[104px_1fr] items-center gap-x-3 gap-y-2 text-[13px]">
+          <Fact label={t("detail.type")}>
+            {kindLabel[item.kind]}
+            {item.enabled === false && <span className="text-muted"> · {t("detail.disabled")}</span>}
+          </Fact>
+          <Fact label={t("detail.source")}>
+            <span title={sourceHelp[item.source]}>{sourceLabel[item.source]}</span>
+          </Fact>
+          {item.origin && <Fact label={item.kind === "plugin" ? t("source.marketplace") : t("detail.from")} mono>{item.origin}</Fact>}
+          {item.scope && <Fact label={t("detail.scope")}>{item.scope}</Fact>}
+          <Fact label={t("list.colStatus")}>
+            <StatusBadge status={item.status} checking={busy === "checking"} />
+          </Fact>
+          <Fact label={t("detail.version")} mono>
+            {item.version ?? "—"}
+            {item.latest && item.latest !== item.version && (
+              <>
+                <span className="text-muted"> → </span>
+                <span className={cx(item.status === "updateAvailable" && "font-medium text-warn")}>{item.latest}</span>
+              </>
+            )}
+          </Fact>
+          {item.installedAt && <Fact label={t("detail.installed")}>{fullDate(item.installedAt)}</Fact>}
+          {item.updatedAt && item.updatedAt !== item.installedAt && <Fact label={t("detail.updated")}>{fullDate(item.updatedAt)}</Fact>}
+          {Object.entries(item.meta).map(([k, v]) => (
+            <Fact key={k} label={k} mono>
+              {v}
+            </Fact>
+          ))}
+        </dl>
+
         {/* For a pending update, what changed comes first. */}
         {item.status === "updateAvailable" && <ChangelogPanel item={item} />}
-
-        {item.description && <Description key={item.id} text={item.description} />}
 
         {item.notes.length > 0 && (
           <ul className="mb-5 space-y-2">
@@ -187,25 +203,6 @@ export function DetailPanel({ item, overlay }: { item: Item; overlay: boolean })
         <CostSection item={item} />
         <UsageSection item={item} />
 
-        <dl className="mb-6 grid grid-cols-[104px_1fr] gap-x-3 gap-y-2 text-[13px]">
-          <Fact label={t("detail.type")}>{kindLabel[item.kind]}</Fact>
-          <Fact label={t("detail.source")}>
-            <span title={sourceHelp[item.source]}>{sourceLabel[item.source]}</span>
-          </Fact>
-          {item.origin && <Fact label={item.kind === "plugin" ? t("source.marketplace") : t("detail.from")} mono>{item.origin}</Fact>}
-          {item.scope && <Fact label={t("detail.scope")}>{item.scope}</Fact>}
-          <Fact label={t("detail.version")} mono>
-            {item.version ?? "—"}
-          </Fact>
-          {item.latest && <Fact label={t("detail.latest")} mono>{item.latest}</Fact>}
-          {item.installedAt && <Fact label={t("detail.installed")}>{fullDate(item.installedAt)}</Fact>}
-          {item.updatedAt && item.updatedAt !== item.installedAt && <Fact label={t("detail.updated")}>{fullDate(item.updatedAt)}</Fact>}
-          {Object.entries(item.meta).map(([k, v]) => (
-            <Fact key={k} label={k} mono>
-              {v}
-            </Fact>
-          ))}
-        </dl>
 
         {item.path && (
           <div className="mb-6">
@@ -226,6 +223,7 @@ export function DetailPanel({ item, overlay }: { item: Item; overlay: boolean })
 
         <ChildGroups items={item.children} />
       </div>
+      {menu && <ContextMenu target={menu} onClose={closeMenu} />}
     </aside>
   );
 }

@@ -123,7 +123,7 @@ export function Menu({ x, y, label, onClose, children }: { x: number; y: number;
     e.stopPropagation();
   };
 
-  // Portalled to <body> so viewport coordinates hold: the list's frosted .card (backdrop-filter) would contain and clip it.
+  // Portalled to <body> so viewport coordinates hold and the list card's overflow can't clip it.
   return createPortal(
     <div
       ref={menu}
@@ -132,7 +132,7 @@ export function Menu({ x, y, label, onClose, children }: { x: number; y: number;
       onKeyDown={onKeyDown}
       onContextMenu={(e) => e.preventDefault()}
       style={pos}
-      className="fixed z-40 min-w-48 rounded-lg border border-card-border bg-surface p-1 shadow-2xl"
+      className="fixed z-40 max-h-[70vh] min-w-48 overflow-y-auto rounded-lg border border-card-border bg-surface p-1 shadow-2xl"
     >
       {children}
     </div>,

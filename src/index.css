@@ -2,78 +2,61 @@
 
 /* Semantic tokens. Components use these via Tailwind (bg-surface, text-muted, …), never raw hex. */
 
-/* Workbench, "Aurora" (design-system/skillshelf/MASTER.md): violet primary with a violet-to-teal gradient, orange for
-   updates, a faint glow on the canvas and frosted cards. Every text pair is checked at 4.5:1 or better, including chips
-   on their own 10-12% tints and accent-fg on every gradient stop.
-   --accent-grad, --accent-glow, --veil, --glass and --glow are only read by the Workbench rules further down. */
+/* Workbench (design-system/skillshelf/MASTER.md): flat and quiet. Cool grey canvas, white cards with a hairline border,
+   a blue accent for place and links, orange only for updates. Every text pair is checked at 4.5:1 or better, including
+   chips on their own 12% tints. */
 :root,
 [data-palette="workbench"] {
   color-scheme: light;
-  --bg: #f5f6fb;
+  --bg: #f6f7f9;
   --surface: #ffffff;
-  --surface-2: #eff0f8;
-  --surface-hover: #e9ebf7;
-  --border: #e2e4f0;
-  --border-strong: #c9cde2;
-  --fg: #13142e;
-  --muted: #545a78;
-  --accent: #6d28d9;
-  --accent-hover: #5b21b6;
+  --surface-2: #f1f3f6;
+  --surface-hover: #e9edf2;
+  --border: #e1e4ea;
+  --border-strong: #cdd2db;
+  --fg: #101828;
+  --muted: #4b5565;
+  --accent: #2453d6;
+  --accent-hover: #1d44b8;
   --accent-fg: #ffffff;
   --warn: #b43c0a;
   --warn-hover: #9a330a;
   --warn-fg: #ffffff;
-  --danger: #b91c1c;
+  --danger: #b42318;
   --info: #3b5b7a;
-  --ring: #7c3aed;
-  --nav-active: #ede7fd;
-  --nav-active-fg: #5b21b6;
-  --card-border: rgb(255 255 255 / 0.7);
-  --card-shadow: 0 1px 2px rgb(19 20 46 / 0.05), 0 10px 30px -6px rgb(76 29 149 / 0.1);
-  --scrim: rgb(19 20 46 / 0.4);
-  --accent-grad: linear-gradient(135deg, #7c3aed, #5b4be0 45%, #0f766e);
-  --accent-glow: 0 6px 18px -4px rgb(124 58 237 / 0.45);
-  --veil: rgb(0 0 0 / 0.12);
-  --glass: 78%;
-  --glow:
-    radial-gradient(55% 45% at 0% 0%, rgb(20 184 166 / 0.16), transparent 70%),
-    radial-gradient(50% 45% at 100% 0%, rgb(139 92 246 / 0.18), transparent 70%),
-    radial-gradient(60% 50% at 85% 100%, rgb(236 72 153 / 0.08), transparent 70%);
+  --ring: #2453d6;
+  --nav-active: #eaf0fe;
+  --nav-active-fg: #1d44b8;
+  --card-border: #e1e4ea;
+  --card-shadow: 0 1px 2px rgb(16 24 40 / 0.05);
+  --scrim: rgb(16 24 40 / 0.4);
 }
 
 :root[data-theme="dark"],
 [data-palette="workbench"][data-theme="dark"] {
   color-scheme: dark;
-  --bg: #07081a;
-  --surface: #11132b;
-  --surface-2: #171a37;
-  --surface-hover: #1e2244;
-  --border: #242850;
-  --border-strong: #363c6c;
-  --fg: #eceefe;
-  --muted: #a4a9d0;
-  --accent: #a78bfa;
-  --accent-hover: #c4b5fd;
-  --accent-fg: #140a32;
+  --bg: #0e1116;
+  --surface: #161a21;
+  --surface-2: #1c212a;
+  --surface-hover: #232934;
+  --border: #2a303b;
+  --border-strong: #3b4351;
+  --fg: #eef1f5;
+  --muted: #a3acba;
+  --accent: #7ea2ff;
+  --accent-hover: #a3bdff;
+  --accent-fg: #0a1633;
   --warn: #fb923c;
   --warn-hover: #fdba74;
   --warn-fg: #1c0a02;
   --danger: #f87171;
-  --info: #93b4d4;
-  --ring: #c4b5fd;
-  --nav-active: #241d4f;
-  --nav-active-fg: #c4b5fd;
-  --card-border: rgb(255 255 255 / 0.07);
-  --card-shadow: 0 1px 2px rgb(0 0 0 / 0.5), 0 12px 32px -8px rgb(0 0 0 / 0.5);
-  --scrim: rgb(3 3 12 / 0.72);
-  --accent-grad: linear-gradient(135deg, #c4b5fd, #a78bfa 45%, #5eead4);
-  --accent-glow: 0 6px 22px -4px rgb(167 139 250 / 0.45);
-  --veil: rgb(255 255 255 / 0.16);
-  --glass: 72%;
-  --glow:
-    radial-gradient(50% 45% at 0% 0%, rgb(45 212 191 / 0.13), transparent 70%),
-    radial-gradient(55% 50% at 100% 0%, rgb(139 92 246 / 0.26), transparent 70%),
-    radial-gradient(60% 50% at 80% 100%, rgb(236 72 153 / 0.1), transparent 70%);
+  --info: #9fb6cf;
+  --ring: #a3bdff;
+  --nav-active: #1a2a4f;
+  --nav-active-fg: #c4d4ff;
+  --card-border: #2a303b;
+  --card-shadow: 0 1px 2px rgb(0 0 0 / 0.4);
+  --scrim: rgb(4 6 10 / 0.7);
 }
 
 /* Graphite: neutral zinc surfaces and a monochrome accent, so orange updates are the only colour. */
@@ -297,8 +280,6 @@
   --ring: #7c3aed;
   --nav-active: #ede7fd;
   --nav-active-fg: #5b21b6;
-  --accent-grad: linear-gradient(135deg, #7c3aed, #6d28d9 45%, #5b21b6);
-  --accent-glow: 0 6px 18px -4px rgb(124 58 237 / 0.45);
 }
 
 [data-accent="violet"][data-theme="dark"] {
@@ -308,8 +289,6 @@
   --ring: #c4b5fd;
   --nav-active: #241d4f;
   --nav-active-fg: #c4b5fd;
-  --accent-grad: linear-gradient(135deg, #c4b5fd, #a78bfa);
-  --accent-glow: 0 6px 22px -4px rgb(167 139 250 / 0.45);
 }
 
 [data-accent="blue"] {
@@ -319,8 +298,6 @@
   --ring: #2563eb;
   --nav-active: #dbeafe;
   --nav-active-fg: #1e40af;
-  --accent-grad: linear-gradient(135deg, #2563eb, #1d4ed8 45%, #1e40af);
-  --accent-glow: 0 6px 18px -4px rgb(37 99 235 / 0.45);
 }
 
 [data-accent="blue"][data-theme="dark"] {
@@ -330,8 +307,6 @@
   --ring: #93c5fd;
   --nav-active: #172a54;
   --nav-active-fg: #bfdbfe;
-  --accent-grad: linear-gradient(135deg, #93c5fd, #60a5fa);
-  --accent-glow: 0 6px 22px -4px rgb(96 165 250 / 0.45);
 }
 
 [data-accent="teal"] {
@@ -341,8 +316,6 @@
   --ring: #0d9488;
   --nav-active: #ccfbf1;
   --nav-active-fg: #115e59;
-  --accent-grad: linear-gradient(135deg, #0f766e, #115e59);
-  --accent-glow: 0 6px 18px -4px rgb(13 148 136 / 0.45);
 }
 
 [data-accent="teal"][data-theme="dark"] {
@@ -352,8 +325,6 @@
   --ring: #5eead4;
   --nav-active: #0f302e;
   --nav-active-fg: #99f6e4;
-  --accent-grad: linear-gradient(135deg, #5eead4, #2dd4bf);
-  --accent-glow: 0 6px 22px -4px rgb(45 212 191 / 0.4);
 }
 
 [data-accent="green"] {
@@ -363,8 +334,6 @@
   --ring: #16a34a;
   --nav-active: #dcfce7;
   --nav-active-fg: #166534;
-  --accent-grad: linear-gradient(135deg, #15803d, #137333 45%, #166534);
-  --accent-glow: 0 6px 18px -4px rgb(22 163 74 / 0.4);
 }
 
 [data-accent="green"][data-theme="dark"] {
@@ -374,8 +343,6 @@
   --ring: #86efac;
   --nav-active: #10301c;
   --nav-active-fg: #bbf7d0;
-  --accent-grad: linear-gradient(135deg, #86efac, #4ade80);
-  --accent-glow: 0 6px 22px -4px rgb(74 222 128 / 0.4);
 }
 
 [data-accent="pink"] {
@@ -385,8 +352,6 @@
   --ring: #db2777;
   --nav-active: #fce7f3;
   --nav-active-fg: #9d174d;
-  --accent-grad: linear-gradient(135deg, #be185d, #9d174d);
-  --accent-glow: 0 6px 18px -4px rgb(219 39 119 / 0.4);
 }
 
 [data-accent="pink"][data-theme="dark"] {
@@ -396,8 +361,6 @@
   --ring: #f9a8d4;
   --nav-active: #3f1530;
   --nav-active-fg: #fbcfe8;
-  --accent-grad: linear-gradient(135deg, #f9a8d4, #f472b6);
-  --accent-glow: 0 6px 22px -4px rgb(244 114 182 / 0.4);
 }
 @theme inline {
   --color-bg: var(--bg);
@@ -456,26 +419,6 @@ button:not(:disabled),
 summary,
 label[for] {
   cursor: pointer;
-}
-
-/* Workbench only: the canvas glow, gradient primary buttons and frosted cards. Other palettes stay flat. */
-:root[data-palette="workbench"] body {
-  background-image: var(--glow);
-  background-attachment: fixed;
-}
-
-[data-palette="workbench"] .btn-primary {
-  background-image: var(--accent-grad);
-  box-shadow: var(--accent-glow), inset 0 1px 0 rgb(255 255 255 / 0.25);
-}
-
-[data-palette="workbench"] .btn-primary:hover:enabled {
-  background-image: linear-gradient(var(--veil), var(--veil)), var(--accent-grad);
-}
-
-[data-palette="workbench"] .card {
-  background-color: color-mix(in srgb, var(--surface) var(--glass), transparent);
-  backdrop-filter: blur(20px) saturate(1.4);
 }
 
 ::selection {
