@@ -250,7 +250,7 @@ export function AppUpdateRailButton({ className }: { className: string }) {
       <Icon
         aria-hidden
         className={cx(
-          "size-5",
+          "size-4 shrink-0",
           (phase === "checking" || phase === "installing") && "animate-spin motion-reduce:animate-none",
           phase === "error" && "text-danger",
         )}

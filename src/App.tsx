@@ -7,7 +7,7 @@ import { CleanUp } from "./components/CleanUp";
 import { DetailPanel } from "./components/DetailPanel";
 import { ConfirmDialogs } from "./components/Dialogs";
 import { Discover } from "./components/Discover";
-import { FilterSidebar } from "./components/FilterSidebar";
+import { FilterBar } from "./components/FilterBar";
 import { ItemList } from "./components/ItemList";
 import { McpServers } from "./components/McpServers";
 import { Overview } from "./components/Overview";
@@ -120,10 +120,12 @@ export default function App() {
           </Banner>
         )}
         {screen === "library" ? (
-          <div className="relative flex min-h-0 flex-1 gap-3 pr-5 pb-4">
-            <FilterSidebar />
-            <ItemList rows={rows} />
-            {active && <DetailPanel key={active.id} item={active} overlay={!wide} />}
+          <div className="flex min-h-0 flex-1 flex-col px-5 pb-4">
+            <FilterBar />
+            <div className="relative flex min-h-0 flex-1 gap-4">
+              <ItemList rows={rows} />
+              {active && <DetailPanel key={active.id} item={active} overlay={!wide} />}
+            </div>
           </div>
         ) : screen === "overview" ? (
           <Overview />

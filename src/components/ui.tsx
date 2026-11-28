@@ -22,8 +22,8 @@ import type { Kind, Status } from "../types";
 
 type Variant = "primary" | "update" | "secondary" | "ghost" | "danger";
 
-/** A floating surface on the tinted canvas: lists, panels, overview tiles. */
-export const card = "card rounded-2xl border border-card-border bg-surface shadow-card";
+/** A white surface on the grey canvas: lists, panels, overview cards. */
+export const card = "rounded-lg border border-card-border bg-surface shadow-card";
 
 export function Button({
   variant = "secondary",
@@ -39,7 +39,7 @@ export function Button({
         "inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg font-medium whitespace-nowrap transition-colors duration-150",
         "disabled:cursor-not-allowed disabled:opacity-50",
         size === "sm" ? "h-8 px-2.5 text-[13px]" : "h-9 px-3.5 text-sm",
-        variant === "primary" && "btn-primary bg-accent text-accent-fg hover:enabled:bg-accent-hover",
+        variant === "primary" && "bg-accent text-accent-fg hover:enabled:bg-accent-hover",
         variant === "update" && "bg-warn text-warn-fg hover:enabled:bg-warn-hover",
         variant === "secondary" && "border border-border-strong bg-surface text-fg hover:enabled:bg-surface-hover",
         variant === "ghost" && "text-fg hover:enabled:bg-surface-hover",
@@ -242,7 +242,7 @@ export function Modal({
     };
   }, []);
 
-  // Portalled to <body>: a frosted .card (backdrop-filter) would otherwise contain this fixed overlay.
+  // Portalled to <body>, so no parent's overflow or stacking context can clip this fixed overlay.
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-scrim p-4" onMouseDown={onClose}>
       <div
@@ -252,7 +252,7 @@ export function Modal({
         aria-labelledby="modal-title"
         onMouseDown={(e) => e.stopPropagation()}
         className={cx(
-          "flex max-h-[85vh] w-full flex-col rounded-2xl border border-card-border bg-surface shadow-2xl",
+          "flex max-h-[85vh] w-full flex-col rounded-xl border border-card-border bg-surface shadow-2xl",
           wide ? "max-w-2xl" : "max-w-lg",
         )}
       >
